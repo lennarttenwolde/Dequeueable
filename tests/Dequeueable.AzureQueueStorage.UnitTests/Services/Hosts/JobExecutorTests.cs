@@ -38,7 +38,7 @@ namespace Dequeueable.AzureQueueStorage.UnitTests.Services.Hosts
         }
 
         [Fact]
-        public async Task Given_a_QueueListener_when_HandleAsync_is_called_and_messages_are_retrieved_then_the_handler_is_called_correctly()
+        public async Task Given_a_JobExecutor_when_HandleAsync_is_called_and_messages_are_retrieved_then_the_handler_is_called_correctly()
         {
             // Arrange
             var messages = new[] { new MessageTestDataBuilder().WithmessageId("1").Build(), new MessageTestDataBuilder().WithmessageId("2").Build() };
