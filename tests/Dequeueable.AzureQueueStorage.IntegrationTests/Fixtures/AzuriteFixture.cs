@@ -5,7 +5,9 @@ using System.Net.Sockets;
 
 namespace Dequeueable.AzureQueueStorage.IntegrationTests.Fixtures
 {
+#pragma warning disable CA1515 // Consider making public types internal
     public class AzuriteFixture : IAsyncLifetime
+#pragma warning restore CA1515 // Consider making public types internal
     {
         private int? _blobPort;
         private int? _queuePort;
@@ -58,7 +60,7 @@ namespace Dequeueable.AzureQueueStorage.IntegrationTests.Fixtures
                  .WithPortBinding(QueuePort, 10001)
                  .WithPortBinding(TablePort, 10002)
                  .WithCleanUp(true)
-                 .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(10001))
+                 .WithWaitStrategy(Wait.ForUnixContainer().UntilExternalTcpPortIsAvailable(10001))
                  .Build();
 
         public async Task InitializeAsync()

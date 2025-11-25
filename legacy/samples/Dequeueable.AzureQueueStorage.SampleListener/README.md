@@ -1,5 +1,12 @@
 # Azure Queue Storage Sample listener
 
+
+> [!WARNING]
+> **Deprecation Notice:**  The continuous polling/worker functionality (`RunAsListener()`) in `Dequeueable.AzureQueueStorage` has been **removed**.
+> * **Reason:** Maintaining a custom continuous poller is redundant. Modern solutions like **KEDA (Kubernetes Event-driven Autoscaling)** or specialized frameworks like **MassTransit** offer superior, more reliable scaling and feature sets for long-running workers.
+> * **Migration Advice:** For continuous, long-running processing, use **MassTransit** (for feature-rich workers) or the native **Azure Functions Queue Trigger** (on a Premium or Flex Consumption plan).
+
+
 ## Docker
 
 ### Build

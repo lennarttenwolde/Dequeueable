@@ -18,11 +18,5 @@
         /// <param name="options">Action to configure the <see cref="HostOptions"/></param>
         /// <returns><see cref="IDequeueableHostBuilder"/></returns>
         IDequeueableHostBuilder RunAsJob(Action<HostOptions>? options = null);
-        /// <summary>
-        /// The application will run as a listener, the queue will periodically be polled for new message.
-        /// </summary>
-        /// <param name="options">Action to configure the <see cref="ListenerHostOptions"/></param>
-        /// <returns><see cref="IDequeueableHostBuilder"/></returns>
-        IDequeueableHostBuilder RunAsListener(Action<ListenerHostOptions>? options = null);
     }
 }

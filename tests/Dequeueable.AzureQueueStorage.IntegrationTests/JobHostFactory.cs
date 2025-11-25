@@ -5,7 +5,9 @@ using Microsoft.Extensions.Hosting;
 
 namespace Dequeueable.AzureQueueStorage.IntegrationTests
 {
+#pragma warning disable CA1515 // Consider making public types internal
     public class JobHostFactory<TFunction>
+#pragma warning restore CA1515 // Consider making public types internal
         where TFunction : class, IAzureQueueFunction
     {
         private readonly IHostBuilder _hostBuilder;

@@ -1,17 +1,11 @@
 # Dequeueable.AzureQueueStorage
 
-This project is inspired by the Azure Function Host. This project is an **opinionated** optimization on the Azure Function:
-
+This project is an **opinionated**, cloud-native host for Azure Queue Storage. It is designed specifically as an optimization and alternative to the traditional Azure Function Host:
 - Build as a Console App
 - Being able to use optimized alpine/dotnet images
 - Have the freedom to use Keda or any other scalers to retrieve queue messages
 
-This framework can run as a **listener** or **job**:
-
-- **Listener:**
-  Highly scalable queue listener that will be invoked automatically when new messages are detected on the Azure Queue.
-- **Job:**
-  Framework that depends on external queue triggers, eg; KEDA. When the host is started, new messages on the Azure Queue are being retrieved and executed. After execution the host will shutdown automatically.
+It functions as an **Ephemeral Job Runner**. The host is triggered by external queue scalers (e.g., KEDA), executes the retrieved message batch, and immediately shuts down upon completion.
 
 ## Getting started
 
@@ -19,9 +13,8 @@ Scaffold a new project, you can either use a console or web app.
 
 1. Add a class that implements the `IAzureQueueFunction`.
 2. Add `.AddAzureQueueStorageServices<TestFunction>` in the DI container.
-3. Add the job or listener services:
+3. Add the specialized Job Runner:
    - Add `RunAsJob` in the DI container of your app to run the host as a job.
-   - Add `RunAsListener` in the DI container of your app to run the app as a back ground listener.
 
 ```csharp
 await Host.CreateDefaultBuilder(args)
@@ -74,7 +67,7 @@ The library uses the `IOptions` pattern to inject the configured app settings. T
 
 #### Host options
 
-These options can be set for both the job as the listener project:
+These options can be set for he job project:
 
 | Setting                    | Description                                                                                                                                            | Default                                                                    | Required                           |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- | ---------------------------------- |
@@ -88,15 +81,6 @@ These options can be set for both the job as the listener project:
 | MaxDequeueCount            | Max dequeue count before moving to the poison queue.                                                                                                   | 5                                                                          | No                                 |
 | VisibilityTimeoutInSeconds | The timeout after the queue message is visible again for other services.                                                                               | 300                                                                        | No                                 |
 | QueueClientOptions         | Provides the client configuration options for connecting to Azure Queue Storage.                                                                       | `new QueueClientOptions { MessageEncoding = QueueMessageEncoding.Base64 }` | No                                 |
-
-#### Listener options
-
-| Setting                              | Description                                                                                                                    | Default                | Required |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------- | -------- |
-| NewBatchThreshold                    | The threshold at which a new batch of messages will be fetched. This setting is **ignored** when using the singleton function. | BatchSize / 2          | No       |
-| MinimumPollingIntervalInMilliseconds | The minimum polling interval to check the queue for new messages.                                                              | 5                      | No       |
-| MaximumPollingIntervalInMilliseconds | The maximum polling interval to check the queue for new messages.                                                              | 10000                  | No       |
-| DeltaBackOff                         | The delta used to randomize the polling interval.                                                                              | MinimumPollingInterval | No       |
 
 ## Authentication
 
@@ -113,8 +97,7 @@ You can authenticate to the storage account & queue by setting the ConnectionStr
 
 ```csharp
     services.AddAzureQueueStorageServices<TestFunction>()
-    // .RunAsListener(options =>
-    // .RunAsJob(options =>
+    .RunAsJob(options =>
     {
         // ...
         options.ConnectionString = "UseDevelopmentStorage=true";
@@ -132,8 +115,7 @@ Set the `AuthenticationScheme` and the `AccountName` options to authenticate via
 
 ```csharp
     services.AddAzureQueueStorageServices<TestFunction>()
-    // .RunAsListener(options =>
-    // .RunAsJob(options =>
+    .RunAsJob(options =>
     {
         options.AuthenticationScheme = new DefaultAzureCredential();
         options.AccountName = "thestorageaccountName";
@@ -168,6 +150,8 @@ internal class MyCustomQueueProvider : IQueueClientProvider
 A singleton can be applied the job to ensure that only a single instance of the job is executed at any given time. It uses the blob lease and therefore **distributed** lock is guaranteed. The blob is always leased for 60 seconds. The lease will be released if no longer required. It will be automatically renewed if executing the message(s) takes longer.
 
 NOTE: The blob files will not be automatically deleted. If needed, consider specifying data lifecycle rules for the blob container: https://learn.microsoft.com/en-us/azure/storage/blobs/lifecycle-management-overview
+
+> If making use of the **Identity Flow**, the lease requires the **Storage Blob Data Contributor** role because the library writes and manages the lease blob for distributed locking.
 
 To run the host as singleton, call the `.AsSingleton()` in the DI container:
 
@@ -259,4 +243,4 @@ The lease timeout of the blob lease is automatically updated. It will be updated
 ## Sample
 
 - [Job Console app](https://github.com/lenndewolten/Dequeueable/blob/main/samples/Dequeueable.AzureQueueStorage.SampleJob/README.md)
-- [Listener Console app](https://github.com/lenndewolten/Dequeueable/blob/main/samples/Dequeueable.AzureQueueStorage.SampleListener/README.md)
+
