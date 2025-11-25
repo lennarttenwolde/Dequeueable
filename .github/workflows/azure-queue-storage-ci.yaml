@@ -5,6 +5,7 @@ on:
     paths:
       - "lib/Dequeueable.AzureQueueStorage/**"
       - "tests/Dequeueable.AzureQueueStorage.**/"
+      - "Directory.Build.props"
 
 jobs:
   build:
