@@ -1,5 +1,10 @@
 # Dequeueable.AmazonSQS
 
+> [!WARNING]
+> **Deprecation Notice:** Support for AWS SQS (`Dequeueable.AmazonSQS`) has been discontinued.
+>
+> **Migration Advice:** For modern AWS serverless applications, we recommend using native [AWS Lambda SQS Triggers](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html). They now support batch windowing and partial batch responses, which solves the concurrency issues this library originally addressed.
+
 This project is an **opinionated** framework build for the Amazon (AWS) Simple Queue Service (SQS):
 - Build as a Console App
 - Being able to use optimized alpine/dotnet images
