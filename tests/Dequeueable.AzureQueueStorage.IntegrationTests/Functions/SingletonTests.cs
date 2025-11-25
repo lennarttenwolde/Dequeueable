@@ -34,51 +34,6 @@ namespace Dequeueable.AzureQueueStorage.IntegrationTests.Functions
         }
 
         [Fact]
-        public async Task Given_a_ListenerFunction_with_a_singleton_attribute_when_a_queue_has_two_messages_then_they_are_handled_correctly()
-        {
-            // Arrange
-            var scope = "Id";
-            var containerName = "listenerlock";
-            var factory = new ListenerHostFactory<TestFunction>(opt =>
-            {
-                opt.ConnectionString = _azuriteFixture.ConnectionString;
-                opt.QueueName = _queueName;
-                opt.MaxDequeueCount = 5;
-            }, opt =>
-            {
-                opt.ContainerName = containerName;
-                opt.Scope = scope;
-            });
-
-            var fakeServiceMock = new Mock<IFakeService>();
-
-            factory.ConfigureTestServices(services =>
-            {
-                services.AddTransient(_ => fakeServiceMock.Object);
-            });
-
-            var blobContainerClient = new BlobContainerClient(_azuriteFixture.ConnectionString, containerName);
-
-            var messages = new[] { new { Id = "1" }, new { Id = "1" } };
-            foreach (var message in messages)
-            {
-                await _queueClient.SendMessageAsync(BinaryData.FromObjectAsJson(message));
-            }
-
-            // Act
-            var host = factory.Build();
-            await host.HandleAsync(CancellationToken.None);
-
-            // Assert
-            fakeServiceMock.Verify(f => f.Execute(It.IsAny<Message>()), Times.Exactly(messages.Length));
-            var peekedMessage = await _queueClient.PeekMessageAsync();
-            peekedMessage.Value.Should().BeNull();
-
-            var blobclient = blobContainerClient.GetBlobClient("1");
-            (await blobclient.ExistsAsync()).Value.Should().BeTrue();
-        }
-
-        [Fact]
         public async Task Given_a_JobFunction_with_a_singleton_attribute_when_a_queue_has_two_messages_then_they_are_handled_correctly()
         {
             // Arrange

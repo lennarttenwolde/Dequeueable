@@ -33,31 +33,6 @@ namespace Dequeueable.AzureQueueStorage.Configurations
             return this;
         }
 
-        public IDequeueableHostBuilder RunAsListener(Action<ListenerHostOptions>? options = null)
-        {
-            services.AddOptions<ListenerHostOptions>().BindConfiguration(HostOptions.Dequeueable)
-                .Validate(ListenerHostOptions.ValidatePollingInterval, $"The '{nameof(ListenerHostOptions.MinimumPollingIntervalInMilliseconds)}' must not be greater than the '{nameof(ListenerHostOptions.MaximumPollingIntervalInMilliseconds)}'.")
-                .Validate(ListenerHostOptions.ValidateNewBatchThreshold, $"The '{nameof(ListenerHostOptions.NewBatchThreshold)}' must not be greater than the '{nameof(ListenerHostOptions.BatchSize)}'.")
-                .ValidateDataAnnotations()
-                .ValidateOnStart();
-
-            if (options is not null)
-            {
-                services.Configure(options);
-            }
-
-            services.AddHostedService<QueueListenerHost>();
-            services.AddSingleton<IHostExecutor, QueueListenerExecutor>();
-
-            services.TryAddSingleton<IHostOptions>(provider =>
-            {
-                var opt = provider.GetRequiredService<IOptions<ListenerHostOptions>>();
-                return opt.Value;
-            });
-
-            return this;
-        }
-
         public IDequeueableHostBuilder AsSingleton(Action<SingletonHostOptions>? options = null)
         {
             services.AddOptions<SingletonHostOptions>().BindConfiguration(SingletonHostOptions.Name)
@@ -85,8 +60,6 @@ namespace Dequeueable.AzureQueueStorage.Configurations
 
                 return new SingletonQueueMessageExecutor(singletonManager, executor, timeProvider, attribute);
             });
-
-            services.PostConfigure<ListenerHostOptions>(storageAccountOptions => storageAccountOptions.NewBatchThreshold = 0);
 
             return this;
         }
