@@ -2,7 +2,9 @@
 
 namespace Dequeueable.AzureQueueStorage.UnitTests.TestDataBuilders
 {
+#pragma warning disable CA1515 // Consider making public types internal
     public class MessageTestDataBuilder
+#pragma warning restore CA1515 // Consider making public types internal
     {
         private string _messageId = "some id";
         private readonly string _popReceipt = "some pop";
