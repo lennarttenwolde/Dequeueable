@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\lib\Dequeueable.AzureQueueStorage\Dequeueable.AzureQueueStorage.csproj" />
+    <ProjectReference Include="../../lib/Dequeueable/Dequeueable.csproj" />
   </ItemGroup>
 
 </Project>
