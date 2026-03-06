@@ -1,12 +1,12 @@
-﻿using Dequeueable.AzureQueueStorage.Configurations;
-using Dequeueable.AzureQueueStorage.Services.Queues;
-using Dequeueable.AzureQueueStorage.Services.Singleton;
-using Dequeueable.AzureQueueStorage.UnitTests.TestDataBuilders;
+﻿using Dequeueable.Configurations;
+using Dequeueable.Services.Queues;
+using Dequeueable.Services.Singleton;
+using Dequeueable.UnitTests.TestDataBuilders;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Moq;
 
-namespace Dequeueable.AzureQueueStorage.UnitTests.Services.Singleton
+namespace Dequeueable.UnitTests.Services.Singleton
 {
     public class SingletonQueueMessageExecutorTests
     {

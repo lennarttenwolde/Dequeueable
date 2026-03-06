@@ -1,4 +1,4 @@
-﻿namespace Dequeueable.AzureQueueStorage.Configurations
+﻿namespace Dequeueable.Configurations
 {
     /// <summary>
     /// Interface to builds and setup the dequeueable host

@@ -1,7 +1,7 @@
 ﻿using Azure.Core;
 using Azure.Storage.Queues;
 
-namespace Dequeueable.AzureQueueStorage.Configurations
+namespace Dequeueable.Configurations
 {
     /// <summary>
     /// Use the IHostOptions to configure the settings of the host

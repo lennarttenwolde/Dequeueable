@@ -1,8 +1,8 @@
-﻿using Dequeueable.AzureQueueStorage.Models;
-using Dequeueable.AzureQueueStorage.Services.Queues;
+﻿using Dequeueable.Models;
+using Dequeueable.Services.Queues;
 using Microsoft.Extensions.Logging;
 
-namespace Dequeueable.AzureQueueStorage.Services.Hosts
+namespace Dequeueable.Services.Hosts
 {
     internal sealed class JobExecutor(
         IQueueMessageManager messagesManager,

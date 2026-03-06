@@ -1,6 +1,6 @@
-﻿using Dequeueable.AzureQueueStorage.Models;
+﻿using Dequeueable.Models;
 
-namespace Dequeueable.AzureQueueStorage.Services.Queues
+namespace Dequeueable.Services.Queues
 {
     internal interface IQueueMessageExecutor
     {

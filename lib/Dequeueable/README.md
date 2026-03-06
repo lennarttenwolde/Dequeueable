@@ -1,4 +1,4 @@
-# Dequeueable.AzureQueueStorage
+# Dequeueable
 
 This project is an **opinionated**, cloud-native host for Azure Queue Storage. It is designed specifically as an optimization and alternative to the traditional Azure Function Host:
 - Build as a Console App
@@ -242,5 +242,5 @@ The lease timeout of the blob lease is automatically updated. It will be updated
 
 ## Sample
 
-- [Job Console app](https://github.com/lenndewolten/Dequeueable/blob/main/samples/Dequeueable.AzureQueueStorage.SampleJob/README.md)
+- [Job Console app](https://github.com/lenndewolten/Dequeueable/blob/main/samples/Dequeueable.SampleJob/README.md)
 

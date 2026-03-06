@@ -1,7 +1,7 @@
 ﻿using Azure.Core;
 using Azure.Storage.Queues;
 
-namespace Dequeueable.AzureQueueStorage.Factories
+namespace Dequeueable.Factories
 {
     internal sealed class QueueClientFactory : IQueueClientFactory
     {

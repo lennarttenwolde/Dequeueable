@@ -1,9 +1,9 @@
-﻿using Dequeueable.AzureQueueStorage.Models;
+﻿using Dequeueable.Models;
 
-namespace Dequeueable.AzureQueueStorage.IntegrationTests.TestDataBuilders
+namespace Dequeueable.IntegrationTests.TestDataBuilders
 {
 #pragma warning disable CA1515 // Consider making public types internal
-    public class TestFunction : IAzureQueueFunction
+    public class TestFunction : IQueueJob
 #pragma warning restore CA1515 // Consider making public types internal
     {
         private readonly IFakeService _fakeService;

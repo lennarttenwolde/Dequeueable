@@ -1,7 +1,7 @@
-﻿using Dequeueable.AzureQueueStorage.Models;
-using Dequeueable.AzureQueueStorage.Services.Queues;
+﻿using Dequeueable.Models;
+using Dequeueable.Services.Queues;
 
-namespace Dequeueable.AzureQueueStorage.Services.Timers
+namespace Dequeueable.Services.Timers
 {
     internal sealed class VisibilityTimeoutTimer(IQueueMessageManager queueMessagesManager, TimeProvider timeProvider, IDelayStrategy delayStrategy) : IAsyncDisposable
     {

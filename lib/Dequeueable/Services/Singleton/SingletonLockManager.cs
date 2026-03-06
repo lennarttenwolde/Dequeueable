@@ -1,10 +1,10 @@
-﻿using Dequeueable.AzureQueueStorage.Configurations;
-using Dequeueable.AzureQueueStorage.Factories;
-using Dequeueable.AzureQueueStorage.Services.Timers;
+﻿using Dequeueable.Configurations;
+using Dequeueable.Factories;
+using Dequeueable.Services.Timers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Dequeueable.AzureQueueStorage.Services.Singleton
+namespace Dequeueable.Services.Singleton
 {
     internal sealed class SingletonLockManager(ILogger<SingletonLockManager> logger,
     IBlobClientProvider blobClientProvider,

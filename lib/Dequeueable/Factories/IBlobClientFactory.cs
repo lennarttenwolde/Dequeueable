@@ -1,7 +1,7 @@
 ﻿using Azure.Core;
 using Azure.Storage.Blobs;
 
-namespace Dequeueable.AzureQueueStorage.Factories
+namespace Dequeueable.Factories
 {
     /// <summary>
     /// Factory used to create the <see cref="BlobClient"/>. This interface can be used when mocking the blob client.

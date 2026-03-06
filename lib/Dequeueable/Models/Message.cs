@@ -1,4 +1,4 @@
-﻿namespace Dequeueable.AzureQueueStorage.Models
+﻿namespace Dequeueable.Models
 {
     /// <summary>
     /// Queue message retrieved from the qeueue.

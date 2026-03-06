@@ -1,9 +1,9 @@
 ﻿using Azure.Storage.Queues;
-using Dequeueable.AzureQueueStorage.Configurations;
-using Dequeueable.AzureQueueStorage.Factories;
+using Dequeueable.Configurations;
+using Dequeueable.Factories;
 using Microsoft.Extensions.Logging;
 
-namespace Dequeueable.AzureQueueStorage.Services.Queues
+namespace Dequeueable.Services.Queues
 {
     internal sealed class QueueClientProvider(
         IQueueClientFactory factory,

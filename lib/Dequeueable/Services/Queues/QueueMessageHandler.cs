@@ -1,9 +1,9 @@
-﻿using Dequeueable.AzureQueueStorage.Configurations;
-using Dequeueable.AzureQueueStorage.Models;
-using Dequeueable.AzureQueueStorage.Services.Timers;
+﻿using Dequeueable.Configurations;
+using Dequeueable.Models;
+using Dequeueable.Services.Timers;
 using Microsoft.Extensions.Logging;
 
-namespace Dequeueable.AzureQueueStorage.Services.Queues
+namespace Dequeueable.Services.Queues
 {
     internal sealed class QueueMessageHandler(IQueueMessageExecutor queueMessageExecutor,
         IQueueMessageManager queueMessageManager,
@@ -18,12 +18,12 @@ namespace Dequeueable.AzureQueueStorage.Services.Queues
             try
             {
                 await HandleMessageAsync(message, cancellationToken);
-                logger.LogInformation("Executed message with id '{MessageId}' (Succeeded)", message.MessageId);
+                logger.MessageSucceeded(message.MessageId);
                 await queueMessageManager.DeleteMessageAsync(message, cancellationToken);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occurred while executing the queue message with id '{MessageId}'", message.MessageId);
+                logger.MessageFailed(ex, message.MessageId);
                 await HandleException(message, cancellationToken);
             }
         }
@@ -64,5 +64,14 @@ namespace Dequeueable.AzureQueueStorage.Services.Queues
                 ? queueMessageManager.MoveToPoisonQueueAsync(message, cancellationToken)
                 : queueMessageManager.EnqueueMessageAsync(message, cancellationToken);
         }
+    }
+
+    internal static partial class QueueMessageHandlerLogs
+    {
+        [LoggerMessage(Level = LogLevel.Information, Message = "Executed message with id '{MessageId}' (Succeeded)")]
+        internal static partial void MessageSucceeded(this ILogger<QueueMessageHandler> logger, string messageId);
+
+        [LoggerMessage(Level = LogLevel.Error, Message = "An error occurred while executing the queue message with id '{MessageId}'")]
+        internal static partial void MessageFailed(this ILogger<QueueMessageHandler> logger, Exception ex, string messageId);
     }
 }

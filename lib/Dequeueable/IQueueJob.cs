@@ -1,11 +1,11 @@
-﻿using Dequeueable.AzureQueueStorage.Models;
+﻿using Dequeueable.Models;
 
-namespace Dequeueable.AzureQueueStorage
+namespace Dequeueable
 {
     /// <summary>
-    /// Interface to bind a function to the framework
+    /// Interface to bind a job to the framework
     /// </summary>
-    public interface IAzureQueueFunction
+    public interface IQueueJob
     {
         /// <summary>
         /// Interface that binds the class that will be invoked when a message is retrieved from the queue

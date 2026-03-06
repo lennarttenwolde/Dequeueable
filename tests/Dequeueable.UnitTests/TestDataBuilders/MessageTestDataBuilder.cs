@@ -1,6 +1,6 @@
-﻿using Dequeueable.AzureQueueStorage.Models;
+﻿using Dequeueable.Models;
 
-namespace Dequeueable.AzureQueueStorage.UnitTests.TestDataBuilders
+namespace Dequeueable.UnitTests.TestDataBuilders
 {
 #pragma warning disable CA1515 // Consider making public types internal
     public class MessageTestDataBuilder

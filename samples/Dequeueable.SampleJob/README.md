@@ -5,7 +5,7 @@
 ### Build
 
 ```
-docker build -t <yourtagname> -f samples/Dequeueable.AzureQueueStorage.SampleJob/deployment/Dockerfile .
+docker build -t <yourtagname> -f samples/Dequeueable.SampleJob/deployment/Dockerfile .
 ```
 
 Image stats:
@@ -88,69 +88,69 @@ kubectl logs pods/queuejob-consumer-m8zpl-jpqws
 >       Hosting environment: Production
 > info: Microsoft.Hosting.Lifetime[0]
 >       Content root path: /app
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 0
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 0
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 0
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 0
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 1
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 1
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 1
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 1
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 2
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 2
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 2
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 2
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 3
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 3
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 3
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 3
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 4
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 4
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 4
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 4
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 5
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 5
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 5
-> info: Dequeueable.AzureQueueStorage.SampleJob.Functions.TestFunction[0]
+> info: Dequeueable.SampleJob.Functions.TestFunction[0]
 >       Executing job loop 5
-> info: Dequeueable.AzureQueueStorage.Services.Queues.QueueMessageHandler[0]
+> info: Dequeueable.Services.Queues.QueueMessageHandler[0]
 >       Executed message with id 'c134e005-7f93-4415-b979-5e388771510b' (Succeeded)
-> info: Dequeueable.AzureQueueStorage.Services.Queues.QueueMessageHandler[0]
+> info: Dequeueable.Services.Queues.QueueMessageHandler[0]
 >       Executed message with id 'fe0169f5-9a13-425e-bb42-fc4946774ab6' (Succeeded)
-> info: Dequeueable.AzureQueueStorage.Services.Queues.QueueMessageHandler[0]
+> info: Dequeueable.Services.Queues.QueueMessageHandler[0]
 >       Executed message with id 'e370feff-855e-4f7c-8e0e-8f0c92170013' (Succeeded)
-> info: Dequeueable.AzureQueueStorage.Services.Queues.QueueMessageHandler[0]
+> info: Dequeueable.Services.Queues.QueueMessageHandler[0]
 >       Executed message with id '45f69fe7-04b3-44ee-a110-816c21b60bce' (Succeeded)
-> info: Dequeueable.AzureQueueStorage.Services.Queues.QueueMessageHandler[0]
+> info: Dequeueable.Services.Queues.QueueMessageHandler[0]
 >       Executed message with id 'c134e005-7f93-4415-b979-5e388771510b' (Succeeded)
-> info: Dequeueable.AzureQueueStorage.Services.Queues.QueueMessageHandler[0]
+> info: Dequeueable.Services.Queues.QueueMessageHandler[0]
 >       Executed message with id 'e370feff-855e-4f7c-8e0e-8f0c92170013' (Succeeded)
-> info: Dequeueable.AzureQueueStorage.Services.Queues.QueueMessageHandler[0]
+> info: Dequeueable.Services.Queues.QueueMessageHandler[0]
 >       Executed message with id '45f69fe7-04b3-44ee-a110-816c21b60bce' (Succeeded)
-> info: Dequeueable.AzureQueueStorage.Services.Queues.QueueMessageHandler[0]
+> info: Dequeueable.Services.Queues.QueueMessageHandler[0]
 >       Executed message with id 'fe0169f5-9a13-425e-bb42-fc4946774ab6' (Succeeded)
 > info: Microsoft.Hosting.Lifetime[0]
 >       Application is shutting down...

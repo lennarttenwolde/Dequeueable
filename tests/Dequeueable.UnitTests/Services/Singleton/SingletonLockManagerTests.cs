@@ -1,13 +1,13 @@
 ﻿using Azure.Storage.Blobs;
-using Dequeueable.AzureQueueStorage.Configurations;
-using Dequeueable.AzureQueueStorage.Factories;
-using Dequeueable.AzureQueueStorage.Services.Singleton;
+using Dequeueable.Configurations;
+using Dequeueable.Factories;
+using Dequeueable.Services.Singleton;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 
-namespace Dequeueable.AzureQueueStorage.UnitTests.Services.Singleton
+namespace Dequeueable.UnitTests.Services.Singleton
 {
     public class SingletonLockManagerTests
     {

@@ -1,14 +1,14 @@
 ﻿using Moq;
 using Microsoft.Extensions.Logging;
 using Azure.Storage.Blobs;
-using Dequeueable.AzureQueueStorage.Services.Singleton;
-using Dequeueable.AzureQueueStorage.Factories;
-using Dequeueable.AzureQueueStorage.Configurations;
+using Dequeueable.Services.Singleton;
+using Dequeueable.Factories;
+using Dequeueable.Configurations;
 using Microsoft.Extensions.Options;
 using Azure.Identity;
 using FluentAssertions;
 
-namespace Dequeueable.AzureQueueStorage.UnitTests.Services.Singleton
+namespace Dequeueable.UnitTests.Services.Singleton
 {
     public class BlobClientProviderTests
     {

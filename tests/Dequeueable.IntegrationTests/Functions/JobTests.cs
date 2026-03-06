@@ -1,12 +1,12 @@
 ﻿using Azure.Storage.Queues;
-using Dequeueable.AzureQueueStorage.IntegrationTests.Fixtures;
-using Dequeueable.AzureQueueStorage.IntegrationTests.TestDataBuilders;
-using Dequeueable.AzureQueueStorage.Models;
+using Dequeueable.IntegrationTests.Fixtures;
+using Dequeueable.IntegrationTests.TestDataBuilders;
+using Dequeueable.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
-namespace Dequeueable.AzureQueueStorage.IntegrationTests.Functions
+namespace Dequeueable.IntegrationTests.Functions
 {
     public class JobTests : IClassFixture<AzuriteFixture>, IAsyncLifetime
     {

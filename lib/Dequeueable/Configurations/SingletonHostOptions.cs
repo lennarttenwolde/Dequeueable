@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Dequeueable.AzureQueueStorage.Configurations
+namespace Dequeueable.Configurations
 {
     /// <summary>
     /// SingletonHostOptions to configure the singleton settings of the host

@@ -8,6 +8,7 @@
 		CA1812; <!-- Avoid uninstantiated internal classes -->
 		CA2007; <!-- Do not directly await a Task -->
 		CA2201; <!-- Do not raise reserved exception types -->
+    CA1873 <!-- Avoid potentially expensive logging -->
 	</NoWarn>
   </PropertyGroup>
 

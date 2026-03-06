@@ -1,4 +1,4 @@
-﻿namespace Dequeueable.AzureQueueStorage.Services.Queues
+﻿namespace Dequeueable.Services.Queues
 {
     /// <summary>
     /// Represents an exception that occurs when there is an issue with setting the visibility timeout for a queue message.

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<PackageId>Dequeueable.AzureQueueStorage</PackageId>
+		<PackageId>Dequeueable</PackageId>
 		<Version>1.0.0</Version>
 		<Authors>Lennart ten Wolde</Authors>
 		<PackageTags>Microsoft;Azure;Microsoft Azure Storage Queues;Queues;Queue;QueueMessage;QueueMessages;Message;Microsoft Azure Storage Blobs;Events;Event</PackageTags>

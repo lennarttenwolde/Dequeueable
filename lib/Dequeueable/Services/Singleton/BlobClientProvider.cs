@@ -1,10 +1,10 @@
 ﻿using Azure.Storage.Blobs;
-using Dequeueable.AzureQueueStorage.Configurations;
-using Dequeueable.AzureQueueStorage.Factories;
+using Dequeueable.Configurations;
+using Dequeueable.Factories;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Dequeueable.AzureQueueStorage.Services.Singleton
+namespace Dequeueable.Services.Singleton
 {
     internal sealed class BlobClientProvider(
         IBlobClientFactory factory,

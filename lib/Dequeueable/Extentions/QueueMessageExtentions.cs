@@ -1,7 +1,7 @@
-﻿using Dequeueable.AzureQueueStorage.Models;
+﻿using Dequeueable.Models;
 using System.Text.Json;
 
-namespace Dequeueable.AzureQueueStorage.Extentions
+namespace Dequeueable.Extentions
 {
     internal static class QueueMessageExtentions
     {

@@ -3,7 +3,7 @@ using DotNet.Testcontainers.Containers;
 using System.Net;
 using System.Net.Sockets;
 
-namespace Dequeueable.AzureQueueStorage.IntegrationTests.Fixtures
+namespace Dequeueable.IntegrationTests.Fixtures
 {
 #pragma warning disable CA1515 // Consider making public types internal
     public class AzuriteFixture : IAsyncLifetime

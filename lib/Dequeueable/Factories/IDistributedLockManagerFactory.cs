@@ -1,9 +1,9 @@
 ﻿using Azure.Storage.Blobs;
-using Dequeueable.AzureQueueStorage.Configurations;
-using Dequeueable.AzureQueueStorage.Services.Singleton;
+using Dequeueable.Configurations;
+using Dequeueable.Services.Singleton;
 using Microsoft.Extensions.Logging;
 
-namespace Dequeueable.AzureQueueStorage.Factories
+namespace Dequeueable.Factories
 {
     internal interface IDistributedLockManagerFactory
     {

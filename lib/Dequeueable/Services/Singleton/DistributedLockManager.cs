@@ -2,11 +2,11 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
-using Dequeueable.AzureQueueStorage.Configurations;
+using Dequeueable.Configurations;
 using Microsoft.Extensions.Logging;
 using System.Text;
 
-namespace Dequeueable.AzureQueueStorage.Services.Singleton
+namespace Dequeueable.Services.Singleton
 {
     internal sealed class DistributedLockManager(BlobClient blobClient, SingletonHostOptions singletonHostOptions, ILogger logger) : IDistributedLockManager
     {

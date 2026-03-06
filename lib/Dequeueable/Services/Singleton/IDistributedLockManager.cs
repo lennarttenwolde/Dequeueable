@@ -1,4 +1,4 @@
-﻿namespace Dequeueable.AzureQueueStorage.Services.Singleton
+﻿namespace Dequeueable.Services.Singleton
 {
     internal interface IDistributedLockManager
     {

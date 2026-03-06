@@ -1,8 +1,8 @@
-﻿using Dequeueable.AzureQueueStorage.Configurations;
+﻿using Dequeueable.Configurations;
 using FluentAssertions;
 using System.ComponentModel.DataAnnotations;
 
-namespace Dequeueable.AzureQueueStorage.UnitTests.Configurations
+namespace Dequeueable.UnitTests.Configurations
 {
     public class SingletonHostOptionsTests
     {

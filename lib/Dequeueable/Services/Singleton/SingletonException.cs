@@ -1,4 +1,4 @@
-﻿namespace Dequeueable.AzureQueueStorage.Services.Singleton
+﻿namespace Dequeueable.Services.Singleton
 {
     /// <summary>
     /// Represents an exception that occurs in the context of a Singleton pattern.

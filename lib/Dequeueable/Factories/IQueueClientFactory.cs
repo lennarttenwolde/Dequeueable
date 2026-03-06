@@ -1,7 +1,7 @@
 ﻿using Azure.Core;
 using Azure.Storage.Queues;
 
-namespace Dequeueable.AzureQueueStorage.Factories
+namespace Dequeueable.Factories
 {
     /// <summary>
     /// Factory used to create the <see cref="QueueClient"/>. This interface can be used when mocking the queue client.

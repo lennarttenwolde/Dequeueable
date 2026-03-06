@@ -2,7 +2,7 @@
 using Azure.Storage.Queues;
 using System.ComponentModel.DataAnnotations;
 
-namespace Dequeueable.AzureQueueStorage.Configurations
+namespace Dequeueable.Configurations
 {
     /// <summary>
     /// HostOptions to configure the settings of the host

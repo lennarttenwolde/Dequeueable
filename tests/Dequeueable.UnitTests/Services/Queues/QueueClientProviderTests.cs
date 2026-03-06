@@ -3,11 +3,11 @@ using Moq;
 using Microsoft.Extensions.Logging;
 using Azure.Identity;
 using FluentAssertions;
-using Dequeueable.AzureQueueStorage.Factories;
-using Dequeueable.AzureQueueStorage.Services.Queues;
-using Dequeueable.AzureQueueStorage.Configurations;
+using Dequeueable.Factories;
+using Dequeueable.Services.Queues;
+using Dequeueable.Configurations;
 
-namespace Dequeueable.AzureQueueStorage.UnitTests.Services.Queues
+namespace Dequeueable.UnitTests.Services.Queues
 {
     public class QueueClientProviderTests
     {

@@ -1,11 +1,11 @@
-﻿using Dequeueable.AzureQueueStorage.Configurations;
-using Dequeueable.AzureQueueStorage.Extentions;
-using Dequeueable.AzureQueueStorage.Models;
-using Dequeueable.AzureQueueStorage.Services.Queues;
-using Dequeueable.AzureQueueStorage.Services.Timers;
+﻿using Dequeueable.Configurations;
+using Dequeueable.Extentions;
+using Dequeueable.Models;
+using Dequeueable.Services.Queues;
+using Dequeueable.Services.Timers;
 using Microsoft.Extensions.Options;
 
-namespace Dequeueable.AzureQueueStorage.Services.Singleton
+namespace Dequeueable.Services.Singleton
 {
     internal sealed class SingletonQueueMessageExecutor(ISingletonLockManager singletonLockManager,
         IQueueMessageExecutor queueMessageExecutor,

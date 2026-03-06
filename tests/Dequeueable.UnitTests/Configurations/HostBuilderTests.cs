@@ -1,19 +1,18 @@
-﻿using Dequeueable.AzureQueueStorage.Configurations;
-using Dequeueable.AzureQueueStorage.Extentions;
-using Dequeueable.AzureQueueStorage.Models;
-using Dequeueable.AzureQueueStorage.Services.Hosts;
-using Dequeueable.AzureQueueStorage.Services.Queues;
-using Dequeueable.AzureQueueStorage.Services.Singleton;
+﻿using Dequeueable.Configurations;
+using Dequeueable.Models;
+using Dequeueable.Services.Hosts;
+using Dequeueable.Services.Queues;
+using Dequeueable.Services.Singleton;
+using Dequeueable.Extentions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 
-namespace Dequeueable.AzureQueueStorage.UnitTests.Configurations
+namespace Dequeueable.UnitTests.Configurations
 {
     public class HostBuilderTests
     {
-        private sealed class TestFunction : IAzureQueueFunction
+        private sealed class TestFunction : IQueueJob
         {
             public Task ExecuteAsync(Message message, CancellationToken cancellationToken)
             {
@@ -64,7 +63,7 @@ namespace Dequeueable.AzureQueueStorage.UnitTests.Configurations
             var host = hostBuilder.Build();
 
             // Assert
-            host.Services.GetRequiredService<IHostOptions>().Should().BeOfType<AzureQueueStorage.Configurations.HostOptions>();
+            host.Services.GetRequiredService<IHostOptions>().Should().BeOfType<Dequeueable.Configurations.HostOptions>();
         }
 
         [Fact]

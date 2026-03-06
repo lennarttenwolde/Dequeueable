@@ -1,10 +1,10 @@
-﻿using Dequeueable.AzureQueueStorage.Configurations;
-using Dequeueable.AzureQueueStorage.Services.Queues;
-using Dequeueable.AzureQueueStorage.UnitTests.TestDataBuilders;
+﻿using Dequeueable.Configurations;
+using Dequeueable.Services.Queues;
+using Dequeueable.UnitTests.TestDataBuilders;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Dequeueable.AzureQueueStorage.UnitTests.Services.Queues
+namespace Dequeueable.UnitTests.Services.Queues
 {
     public class QueueMessageHandlerTests
     {

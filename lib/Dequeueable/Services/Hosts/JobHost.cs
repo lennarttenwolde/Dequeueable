@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Dequeueable.AzureQueueStorage.Services.Hosts
+namespace Dequeueable.Services.Hosts
 {
     internal sealed class JobHost(IHostExecutor hostHandler, IHostApplicationLifetime hostApplicationLifetime, ILogger<JobHost> logger) : BackgroundService
     {

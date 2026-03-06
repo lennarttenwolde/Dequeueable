@@ -1,4 +1,4 @@
-﻿namespace Dequeueable.AzureQueueStorage.Services.Timers
+﻿namespace Dequeueable.Services.Timers
 {
     internal sealed class LinearDelayStrategy(TimeSpan minimalRenewalDelay) : IDelayStrategy
     {

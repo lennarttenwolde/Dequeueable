@@ -1,7 +1,7 @@
-﻿using Dequeueable.AzureQueueStorage.Services.Timers;
+﻿using Dequeueable.Services.Timers;
 using FluentAssertions;
 
-namespace Dequeueable.AzureQueueStorage.UnitTests.Services.Timers
+namespace Dequeueable.UnitTests.Services.Timers
 {
     public class RandomizedExponentialDelayStrategyTests
     {

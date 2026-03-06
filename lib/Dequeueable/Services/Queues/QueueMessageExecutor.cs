@@ -1,8 +1,8 @@
-﻿using Dequeueable.AzureQueueStorage.Models;
+﻿using Dequeueable.Models;
 
-namespace Dequeueable.AzureQueueStorage.Services.Queues
+namespace Dequeueable.Services.Queues
 {
-    internal sealed class QueueMessageExecutor(IAzureQueueFunction function) : IQueueMessageExecutor
+    internal sealed class QueueMessageExecutor(IQueueJob function) : IQueueMessageExecutor
     {
         public async Task ExecuteAsync(Message message, CancellationToken cancellationToken)
         {

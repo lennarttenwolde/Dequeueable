@@ -1,11 +1,11 @@
-﻿using Dequeueable.AzureQueueStorage.Extentions;
-using Dequeueable.AzureQueueStorage.SampleJob.Functions;
+﻿using Dequeueable.Extentions;
 using Microsoft.Extensions.Hosting;
+using Dequeueable.SampleJob.Jobs;
 
 await Host.CreateDefaultBuilder(args)
 .ConfigureServices(services =>
 {
-    services.AddAzureQueueStorageServices<TestFunction>()
+    services.AddAzureQueueStorageServices<TestJob>()
     .RunAsJob(options =>
     {
         //// Uncomment for identity flow

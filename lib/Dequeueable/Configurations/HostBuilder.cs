@@ -1,12 +1,12 @@
-﻿using Dequeueable.AzureQueueStorage.Factories;
-using Dequeueable.AzureQueueStorage.Services.Hosts;
-using Dequeueable.AzureQueueStorage.Services.Queues;
-using Dequeueable.AzureQueueStorage.Services.Singleton;
+﻿using Dequeueable.Factories;
+using Dequeueable.Services.Hosts;
+using Dequeueable.Services.Queues;
+using Dequeueable.Services.Singleton;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
-namespace Dequeueable.AzureQueueStorage.Configurations
+namespace Dequeueable.Configurations
 {
     internal class HostBuilder(IServiceCollection services) : IDequeueableHostBuilder
     {

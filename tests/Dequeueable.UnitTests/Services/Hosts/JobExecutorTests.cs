@@ -1,11 +1,11 @@
-﻿using Dequeueable.AzureQueueStorage.Models;
-using Dequeueable.AzureQueueStorage.Services.Hosts;
-using Dequeueable.AzureQueueStorage.Services.Queues;
-using Dequeueable.AzureQueueStorage.UnitTests.TestDataBuilders;
+﻿using Dequeueable.Models;
+using Dequeueable.Services.Hosts;
+using Dequeueable.Services.Queues;
+using Dequeueable.UnitTests.TestDataBuilders;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Dequeueable.AzureQueueStorage.UnitTests.Services.Hosts
+namespace Dequeueable.UnitTests.Services.Hosts
 {
     public class JobExecutorTests
     {

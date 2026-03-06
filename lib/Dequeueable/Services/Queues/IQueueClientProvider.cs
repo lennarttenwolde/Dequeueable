@@ -1,6 +1,6 @@
 ﻿using Azure.Storage.Queues;
 
-namespace Dequeueable.AzureQueueStorage.Services.Queues
+namespace Dequeueable.Services.Queues
 {
     /// <summary>
     /// Provides the <see cref="QueueClient"/> used for communicating with the queue. Can be overriden if custom implementation is needed.

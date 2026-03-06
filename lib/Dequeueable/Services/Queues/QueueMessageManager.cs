@@ -1,10 +1,10 @@
 ﻿using Azure;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
-using Dequeueable.AzureQueueStorage.Configurations;
-using Dequeueable.AzureQueueStorage.Models;
+using Dequeueable.Configurations;
+using Dequeueable.Models;
 
-namespace Dequeueable.AzureQueueStorage.Services.Queues
+namespace Dequeueable.Services.Queues
 {
     internal sealed class QueueMessageManager(IQueueClientProvider queueClientProvider, IHostOptions options) : IQueueMessageManager
     {

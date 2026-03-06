@@ -1,9 +1,9 @@
-﻿using Dequeueable.AzureQueueStorage.Extentions;
-using Dequeueable.AzureQueueStorage.UnitTests.TestDataBuilders;
+﻿using Dequeueable.Extentions;
+using Dequeueable.UnitTests.TestDataBuilders;
 using FluentAssertions;
 using System.Text.Json;
 
-namespace Dequeueable.AzureQueueStorage.UnitTests.Extentions
+namespace Dequeueable.UnitTests.Extentions
 {
     public class QueueMessageExtentionsTests
     {

@@ -1,6 +1,6 @@
-﻿using Dequeueable.AzureQueueStorage.Services.Singleton;
+﻿using Dequeueable.Services.Singleton;
 
-namespace Dequeueable.AzureQueueStorage.Services.Timers
+namespace Dequeueable.Services.Timers
 {
     internal sealed class LeaseTimeoutTimer(ISingletonLockManager singletonLockManager, TimeProvider timeProvider, IDelayStrategy delayStrategy) : IAsyncDisposable
     {
