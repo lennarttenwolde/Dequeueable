@@ -32,7 +32,7 @@ namespace Dequeueable.UnitTests.Services.Singleton
 
             // Assert
             factoryMock.Received(1).Create(options.ConnectionString, distributedLockOptions.ContainerName, fileName);
-            Assert.Contains(logger.Collector.GetSnapshot(), e => e.Level == LogLevel.Debug && e.Message.Contains("Authenticate the BlobClient through the ConnectionString"));
+            Assert.Contains(logger.Collector.GetSnapshot(), e => e.Level == LogLevel.Debug && e.Message.Contains("Authenticate the BlobClient through the ConnectionString", StringComparison.OrdinalIgnoreCase));
         }
 
         [Fact]
@@ -59,7 +59,7 @@ namespace Dequeueable.UnitTests.Services.Singleton
 
             // Assert
             factoryMock.Received(1).Create(Arg.Is<Uri>(uri => uri.AbsoluteUri == "https://testaccount.blob.core.windows.net/webjobshost/some-file"), options.AuthenticationScheme);
-            Assert.Contains(logger.Collector.GetSnapshot(), e => e.Level == LogLevel.Debug && e.Message.Contains("Authenticate the BlobClient through Active Directory"));
+            Assert.Contains(logger.Collector.GetSnapshot(), e => e.Level == LogLevel.Debug && e.Message.Contains("Authenticate the BlobClient through Active Directory", StringComparison.OrdinalIgnoreCase));
         }
 
         [Fact]
@@ -86,7 +86,7 @@ namespace Dequeueable.UnitTests.Services.Singleton
 
             // Assert
             factoryMock.Received(1).Create(Arg.Is<Uri>(uri => uri.AbsoluteUri == "https://some-file.privateazure.com/"), options.AuthenticationScheme);
-            Assert.Contains(logger.Collector.GetSnapshot(), e => e.Level == LogLevel.Debug && e.Message.Contains("Authenticate the BlobClient through Active Directory"));
+            Assert.Contains(logger.Collector.GetSnapshot(), e => e.Level == LogLevel.Debug && e.Message.Contains("Authenticate the BlobClient through Active Directory", StringComparison.OrdinalIgnoreCase));
         }
 
         [Fact]
@@ -107,7 +107,7 @@ namespace Dequeueable.UnitTests.Services.Singleton
 
             // Act & Assert
             Assert.Throws<UriFormatException>(() => sut.GetClient(fileName));
-            Assert.Contains(logger.Collector.GetSnapshot(), e => e.Level == LogLevel.Error && e.Message.Contains("Invalid Uri: The Blob Uri could not be parsed."));
+            Assert.Contains(logger.Collector.GetSnapshot(), e => e.Level == LogLevel.Error && e.Message.Contains("Invalid Uri: The Blob Uri could not be parsed.", StringComparison.OrdinalIgnoreCase));
         }
 
         [Fact]

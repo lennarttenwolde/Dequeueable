@@ -17,7 +17,7 @@ namespace Dequeueable.Services.DistributedLock
 
             var leaseId = await AcquireLockAsync(distributedLockOptions.Value, lockManager, cancellationToken);
 
-            logger.LogInformation("Lock with Id '{LeaseId}' acquired for '{FileName}'", leaseId, fileName);
+            logger.LockAcquired(leaseId, fileName);
 
             return leaseId;
         }
@@ -28,7 +28,8 @@ namespace Dequeueable.Services.DistributedLock
 
             var nextVisibileOn = await lockManager.RenewAsync(leaseId, cancellationToken);
 
-            logger.LogInformation("Lock with Id '{LeaseId}' renewed", leaseId);
+            logger.LockRenewed(leaseId);
+
             return nextVisibileOn;
         }
 
@@ -62,5 +63,15 @@ namespace Dequeueable.Services.DistributedLock
 
             throw new DistributedLockException($"Unable to acquire lock, max retries of '{singleton.MaxRetries}' reached");
         }
+    }
+
+
+    internal static partial class Log
+    {
+        [LoggerMessage(EventId = 0, Level = LogLevel.Information, Message = "Lock with Id '{LeaseId}' acquired for '{FileName}'")]
+        public static partial void LockAcquired(this ILogger logger, string leaseId, string fileName);
+
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Lock with Id '{LeaseId}' renewed")]
+        public static partial void LockRenewed(this ILogger logger, string leaseId);
     }
 }

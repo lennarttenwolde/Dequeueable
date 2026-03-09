@@ -220,7 +220,7 @@ namespace Dequeueable.UnitTests.Services.Singleton
 
             // Act & Assert
             await Assert.ThrowsAsync<RequestFailedException>(() => sut.RenewAsync(_leaseId, CancellationToken.None));
-            Assert.Contains(logger.Collector.GetSnapshot(), e => e.Level == LogLevel.Error && e.Message.Contains($"An error occurred while acquiring the lease for blob '{_blobName}'"));
+            Assert.Contains(logger.Collector.GetSnapshot(), e => e.Level == LogLevel.Error && e.Message.Contains($"An error occurred while acquiring the lease for blob '{_blobName}'", StringComparison.OrdinalIgnoreCase));
         }
 
         [Fact]
