@@ -141,7 +141,7 @@ internal class MyCustomQueueProvider : IQueueClientProvider
 
 ## Distributed Lock
 
-A distributed lock can be applied to the job to ensure that only a single instance of the job is executed at any given time. It uses the blob lease and therefore **distributed** lock is guaranteed. The blob is always leased for 60 seconds. The lease will be released if no longer required. It will be automatically renewed if executing the message(s) takes longer.
+A distributed lock can be applied to the job to ensure that only a single instance of the job is executed at any given time. It uses the blob lease and therefore **distributed** lock is guaranteed. The blob is leased for the duration configured by LeaseDurationInSeconds (default: 60 seconds). The lease will be released if no longer required. It will be automatically renewed if executing the message(s) takes longer.
 
 NOTE: The blob files will not be automatically deleted. If needed, consider specifying data lifecycle rules for the blob container: https://learn.microsoft.com/en-us/azure/storage/blobs/lifecycle-management-overview
 
@@ -183,7 +183,7 @@ Nested properties are also supported. Given a queue message with the following b
 }
 ```
 
-When the scope is set to `"My:Nested:Property"` on the function. Only a single message containing `500` will be executed at an given time.
+When the scope is set to `"My:Nested:Property"` on the job. Only a single message containing `500` will be executed at an given time.
 
 ### Lock Options
 
