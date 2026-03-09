@@ -25,8 +25,12 @@ namespace Dequeueable.Extensions
             try
             {
                 await using var scope = host.Services.CreateAsyncScope();
+                var lifetime = scope.ServiceProvider.GetRequiredService<IHostApplicationLifetime>();
+
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, lifetime.ApplicationStopping);
+
                 var executor = scope.ServiceProvider.GetRequiredService<IJobExecutor>();
-                await executor.ExecuteAsync(cancellationToken);
+                await executor.ExecuteAsync(cts.Token);
             }
             finally
             {
