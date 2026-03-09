@@ -9,7 +9,7 @@
 			This client library simplifies dequeuing queue messages from Microsoft Azure Storage Queues. It makes it easy to retrieve messages from the queue: dequeueing, exception handling and distributed singleton are handled for you.
 		</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageReadmeFile>../../README.md</PackageReadmeFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<RepositoryUrl>https://github.com/lenndewolten/Dequeueable</RepositoryUrl>
 		<RepositoryType>Git</RepositoryType>
 		<ProjectUrl>https://github.com/lenndewolten/Dequeueable</ProjectUrl>
@@ -35,6 +35,6 @@
 	</ItemGroup>
 	
  <ItemGroup>
-    <None Include="../../README.md" Pack="true" PackagePath="\" />
+   <None Include="../../README.md" Pack="true" PackagePath="\" Link="README.md" />
   </ItemGroup>
 </Project>
