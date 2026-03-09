@@ -4,7 +4,7 @@ using Dequeueable.IntegrationTests.TestDataBuilders;
 using Dequeueable.Models;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Dequeueable.IntegrationTests.Functions
+namespace Dequeueable.IntegrationTests.Jobs
 {
     public class JobTests : IClassFixture<AzuriteFixture>, IAsyncLifetime
     {

@@ -6,7 +6,7 @@ using Dequeueable.IntegrationTests.TestDataBuilders;
 using Dequeueable.Services.DistributedLock;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Dequeueable.IntegrationTests.Functions
+namespace Dequeueable.IntegrationTests.Jobs
 {
     public class DistributedLockTests : IClassFixture<AzuriteFixture>, IAsyncLifetime
     {
