@@ -7,30 +7,33 @@ using Microsoft.Extensions.Options;
 namespace Dequeueable.Services.Singleton
 {
     internal sealed class BlobClientProvider(
-        IBlobClientFactory factory,
-        IHostOptions options,
-        IOptions<SingletonHostOptions> singletonHostOptions,
-        ILogger<BlobClientProvider> logger) : IBlobClientProvider
+    IBlobClientFactory factory,
+    IOptions<HostOptions> hostOptions,
+    IOptions<SingletonHostOptions> singletonHostOptions,
+    ILogger<BlobClientProvider> logger) : IBlobClientProvider
     {
+
+        private readonly HostOptions _hostOptions = hostOptions.Value;
         private readonly SingletonHostOptions _singletonHostOptions = singletonHostOptions.Value;
+
 
         public BlobClient GetClient(string fileName)
         {
-            if (options.AuthenticationScheme is not null)
+            if (_hostOptions.AuthenticationScheme is not null)
             {
                 logger.LogDebug("Authenticate the BlobClient through Active Directory");
 
-                var uri = BuildUri(_singletonHostOptions.BlobUriFormat, options.AccountName, _singletonHostOptions.ContainerName, fileName);
-                return factory.Create(uri, options.AuthenticationScheme);
+                var uri = BuildUri(_singletonHostOptions.BlobUriFormat, _hostOptions.AccountName, _singletonHostOptions.ContainerName, fileName);
+                return factory.Create(uri, _hostOptions.AuthenticationScheme);
             }
 
-            if (string.IsNullOrWhiteSpace(options.ConnectionString))
+            if (string.IsNullOrWhiteSpace(_hostOptions.ConnectionString))
             {
                 throw new InvalidOperationException("No AuthenticationScheme or ConnectionString supplied. Make sure that it is defined in the app settings");
             }
 
             logger.LogDebug("Authenticate the BlobClient through the ConnectionString");
-            return factory.Create(options.ConnectionString, _singletonHostOptions.ContainerName, fileName);
+            return factory.Create(_hostOptions.ConnectionString, _singletonHostOptions.ContainerName, fileName);
         }
 
         private Uri BuildUri(string? uriFormat, string? accountName, string containerName, string fileName)
@@ -42,7 +45,7 @@ namespace Dequeueable.Services.Singleton
 
             if (string.IsNullOrWhiteSpace(accountName) == false)
             {
-                uriFormat = uriFormat.Replace($"{{{nameof(IHostOptions.AccountName)}}}", accountName, StringComparison.InvariantCultureIgnoreCase);
+                uriFormat = uriFormat.Replace($"{{{nameof(HostOptions.AccountName)}}}", accountName, StringComparison.InvariantCultureIgnoreCase);
             }
 
             uriFormat = uriFormat.Replace($"{{{nameof(_singletonHostOptions.ContainerName)}}}", containerName, StringComparison.InvariantCultureIgnoreCase);

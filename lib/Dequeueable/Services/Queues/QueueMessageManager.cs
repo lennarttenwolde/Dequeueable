@@ -3,11 +3,13 @@ using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using Dequeueable.Configurations;
 using Dequeueable.Models;
+using Microsoft.Extensions.Options;
 
 namespace Dequeueable.Services.Queues
 {
-    internal sealed class QueueMessageManager(IQueueClientProvider queueClientProvider, IHostOptions options) : IQueueMessageManager
+    internal sealed class QueueMessageManager(IQueueClientProvider queueClientProvider, IOptions<HostOptions> options) : IQueueMessageManager
     {
+        private readonly HostOptions _options = options.Value;
         private readonly QueueClient _queueClient = queueClientProvider.GetQueue();
         private readonly QueueClient _poisonQueueClient = queueClientProvider.GetPoisonQueue();
 
@@ -15,13 +17,13 @@ namespace Dequeueable.Services.Queues
         {
             try
             {
-                var response = await _queueClient.ReceiveMessagesAsync(maxMessages: options.BatchSize, visibilityTimeout: TimeSpan.FromSeconds(options.VisibilityTimeoutInSeconds), cancellationToken);
+                var response = await _queueClient.ReceiveMessagesAsync(maxMessages: _options.BatchSize, visibilityTimeout: TimeSpan.FromSeconds(_options.VisibilityTimeoutInSeconds), cancellationToken);
                 return response.Value.Select(m => new Message(m.MessageId, m.PopReceipt, m.DequeueCount, m.NextVisibleOn, m.Body));
             }
             catch (RequestFailedException exception) when (exception.Status == 404)
             {
                 await CreateQueue(_queueClient, cancellationToken);
-                var response = await _queueClient.ReceiveMessagesAsync(maxMessages: options.BatchSize, visibilityTimeout: TimeSpan.FromSeconds(options.VisibilityTimeoutInSeconds), cancellationToken);
+                var response = await _queueClient.ReceiveMessagesAsync(maxMessages: _options.BatchSize, visibilityTimeout: TimeSpan.FromSeconds(_options.VisibilityTimeoutInSeconds), cancellationToken);
                 return response.Value.Select(m => new Message(m.MessageId, m.PopReceipt, m.DequeueCount, m.NextVisibleOn, m.Body));
             }
         }
@@ -35,7 +37,7 @@ namespace Dequeueable.Services.Queues
             {
                 try
                 {
-                    var updateReceipt = (await _queueClient.UpdateMessageAsync(queueMessage.MessageId, queueMessage.PopReceipt, visibilityTimeout: TimeSpan.FromSeconds(options.VisibilityTimeoutInSeconds), cancellationToken: cancellationToken)).Value;
+                    var updateReceipt = (await _queueClient.UpdateMessageAsync(queueMessage.MessageId, queueMessage.PopReceipt, visibilityTimeout: TimeSpan.FromSeconds(_options.VisibilityTimeoutInSeconds), cancellationToken: cancellationToken)).Value;
                     queueMessage.PopReceipt = updateReceipt.PopReceipt;
                     return updateReceipt.NextVisibleOn;
                 }

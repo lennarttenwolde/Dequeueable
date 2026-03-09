@@ -6,6 +6,7 @@ using FluentAssertions;
 using Dequeueable.Factories;
 using Dequeueable.Services.Queues;
 using Dequeueable.Configurations;
+using Microsoft.Extensions.Options;
 
 namespace Dequeueable.UnitTests.Services.Queues
 {
@@ -27,7 +28,9 @@ namespace Dequeueable.UnitTests.Services.Queues
                 .Returns(new Mock<QueueClient>().Object)
                 .Verifiable();
 
-            var sut = new QueueClientProvider(factoryMock.Object, options, loggerMock.Object);
+            IOptions<HostOptions> optionsWrapper = Options.Create(options);
+
+            var sut = new QueueClientProvider(factoryMock.Object, Options.Create(options), loggerMock.Object);
 
             // Act
             sut.GetQueue();
@@ -61,7 +64,7 @@ namespace Dequeueable.UnitTests.Services.Queues
                 .Returns(new Mock<QueueClient>().Object)
                 .Verifiable();
 
-            var sut = new QueueClientProvider(factoryMock.Object, options, loggerMock.Object);
+            var sut = new QueueClientProvider(factoryMock.Object, Options.Create(options), loggerMock.Object);
 
             // Act
             sut.GetQueue();
@@ -92,7 +95,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             var loggerMock = new Mock<ILogger<QueueClientProvider>>();
             var factoryMock = new Mock<IQueueClientFactory>(MockBehavior.Strict);
 
-            var sut = new QueueClientProvider(factoryMock.Object, options, loggerMock.Object);
+            var sut = new QueueClientProvider(factoryMock.Object, Options.Create(options), loggerMock.Object);
 
             // Act
             Action act = () => sut.GetQueue();
@@ -122,7 +125,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             var loggerMock = new Mock<ILogger<QueueClientProvider>>();
             var factoryMock = new Mock<IQueueClientFactory>(MockBehavior.Strict);
 
-            var sut = new QueueClientProvider(factoryMock.Object, options, loggerMock.Object);
+            var sut = new QueueClientProvider(factoryMock.Object, Options.Create(options), loggerMock.Object);
 
             // Act
             Action act = () => sut.GetQueue();
@@ -147,7 +150,7 @@ namespace Dequeueable.UnitTests.Services.Queues
                 .Returns(new Mock<QueueClient>().Object)
                 .Verifiable();
 
-            var sut = new QueueClientProvider(factoryMock.Object, options, loggerMock.Object);
+            var sut = new QueueClientProvider(factoryMock.Object, Options.Create(options), loggerMock.Object);
 
             // Act
             sut.GetPoisonQueue();
@@ -181,7 +184,7 @@ namespace Dequeueable.UnitTests.Services.Queues
                 .Returns(new Mock<QueueClient>().Object)
                 .Verifiable();
 
-            var sut = new QueueClientProvider(factoryMock.Object, options, loggerMock.Object);
+            var sut = new QueueClientProvider(factoryMock.Object, Options.Create(options), loggerMock.Object);
 
             // Act
             sut.GetPoisonQueue();
@@ -212,7 +215,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             var loggerMock = new Mock<ILogger<QueueClientProvider>>();
             var factoryMock = new Mock<IQueueClientFactory>(MockBehavior.Strict);
 
-            var sut = new QueueClientProvider(factoryMock.Object, options, loggerMock.Object);
+            var sut = new QueueClientProvider(factoryMock.Object, Options.Create(options), loggerMock.Object);
 
             // Act
             Action act = () => sut.GetPoisonQueue();
@@ -242,7 +245,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             var loggerMock = new Mock<ILogger<QueueClientProvider>>();
             var factoryMock = new Mock<IQueueClientFactory>(MockBehavior.Strict);
 
-            var sut = new QueueClientProvider(factoryMock.Object, options, loggerMock.Object);
+            var sut = new QueueClientProvider(factoryMock.Object, Options.Create(options), loggerMock.Object);
 
             // Act
             Action act = () => sut.GetPoisonQueue();

@@ -2,22 +2,27 @@
 using Dequeueable.Configurations;
 using Dequeueable.Factories;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Dequeueable.Services.Queues
 {
     internal sealed class QueueClientProvider(
-        IQueueClientFactory factory,
-        IHostOptions options,
-        ILogger<QueueClientProvider> logger) : IQueueClientProvider
+    IQueueClientFactory factory,
+    IOptions<HostOptions> options,
+    ILogger<QueueClientProvider> logger) : IQueueClientProvider
     {
+
+        private readonly HostOptions _options = options.Value;
+
+
         public QueueClient GetQueue()
         {
-            return Get(options.QueueName);
+            return Get(_options.QueueName);
         }
 
         public QueueClient GetPoisonQueue()
         {
-            return Get(options.PoisonQueueName);
+            return Get(_options.PoisonQueueName);
         }
 
         private QueueClient Get(string queueName)
@@ -27,21 +32,21 @@ namespace Dequeueable.Services.Queues
                 throw new ArgumentException($"'{nameof(queueName)}' cannot be null or whitespace.", nameof(queueName));
             }
 
-            if (options.AuthenticationScheme is not null)
+            if (_options.AuthenticationScheme is not null)
             {
                 logger.LogDebug("Authenticate the QueueClient through Active Directory");
 
-                var uri = BuildUri(options.QueueUriFormat, options.AccountName, queueName);
-                return factory.Create(uri, options.AuthenticationScheme, options.QueueClientOptions);
+                var uri = BuildUri(_options.QueueUriFormat, _options.AccountName, queueName);
+                return factory.Create(uri, _options.AuthenticationScheme, _options.QueueClientOptions);
             }
 
-            if (string.IsNullOrWhiteSpace(options.ConnectionString))
+            if (string.IsNullOrWhiteSpace(_options.ConnectionString))
             {
                 throw new InvalidOperationException("No AuthenticationScheme or ConnectionString supplied. Make sure that it is defined in the app settings");
             }
 
             logger.LogDebug("Authenticate the QueueClient through the ConnectionString");
-            return factory.Create(options.ConnectionString, queueName, options.QueueClientOptions);
+            return factory.Create(_options.ConnectionString, queueName, _options.QueueClientOptions);
         }
 
         private Uri BuildUri(string? uriFormat, string? accountName, string queueName)
@@ -53,7 +58,7 @@ namespace Dequeueable.Services.Queues
 
             if (string.IsNullOrWhiteSpace(accountName) == false)
             {
-                uriFormat = uriFormat.Replace($"{{{nameof(IHostOptions.AccountName)}}}", accountName, StringComparison.InvariantCultureIgnoreCase);
+                uriFormat = uriFormat.Replace($"{{{nameof(HostOptions.AccountName)}}}", accountName, StringComparison.InvariantCultureIgnoreCase);
             }
 
             uriFormat = uriFormat.Replace($"{{queueName}}", queueName, StringComparison.InvariantCultureIgnoreCase);

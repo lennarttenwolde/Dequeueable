@@ -9,7 +9,7 @@ namespace Dequeueable.Services.Queues
         IQueueMessageManager queueMessageManager,
         TimeProvider timeProvider,
         ILogger<QueueMessageHandler> logger,
-        IHostOptions options) : IQueueMessageHandler
+        HostOptions options) : IQueueMessageHandler
     {
         internal TimeSpan MinimalVisibilityTimeoutDelay { get; set; } = TimeSpan.FromSeconds(15);
 

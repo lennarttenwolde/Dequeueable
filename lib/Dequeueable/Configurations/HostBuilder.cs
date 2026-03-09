@@ -24,7 +24,7 @@ namespace Dequeueable.Configurations
             services.AddHostedService<JobHost>();
             services.AddSingleton<IHostExecutor, JobExecutor>();
 
-            services.TryAddSingleton<IHostOptions>(provider =>
+            services.TryAddSingleton<HostOptions>(provider =>
             {
                 var opt = provider.GetRequiredService<IOptions<HostOptions>>();
                 return opt.Value;

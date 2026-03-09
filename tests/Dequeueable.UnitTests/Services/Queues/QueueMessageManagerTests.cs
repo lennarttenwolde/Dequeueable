@@ -5,6 +5,7 @@ using Dequeueable.Configurations;
 using Dequeueable.Services.Queues;
 using Dequeueable.UnitTests.TestDataBuilders;
 using FluentAssertions;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Dequeueable.UnitTests.Services.Queues
@@ -26,7 +27,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
             queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(queueClientFake.Object);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, options);
+            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
 
             // Act
             var messages = await sut.RetrieveMessagesAsync(CancellationToken.None);
@@ -56,7 +57,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
             queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(queueClientFake.Object);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, options);
+            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
 
             // Act
             var messages = await sut.RetrieveMessagesAsync(CancellationToken.None);
@@ -85,7 +86,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
             queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(queueClientFake.Object);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, options);
+            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
 
             // Act
             Func<Task> act = () => sut.RetrieveMessagesAsync(CancellationToken.None);
@@ -110,7 +111,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
             queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(queueClientFake.Object);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, options);
+            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
 
             // Act
             var nextVisibleOn = await sut.UpdateVisibilityTimeOutAsync(message, CancellationToken.None);
@@ -133,7 +134,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
             queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(queueClientFake.Object);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, options);
+            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
 
             // Act
             await sut.DeleteMessageAsync(message, CancellationToken.None);
@@ -156,7 +157,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
             queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(queueClientFake.Object);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, options);
+            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
 
             // Act
             Func<Task> act = () => sut.DeleteMessageAsync(message, CancellationToken.None);
@@ -179,7 +180,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
             queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(queueClientFake.Object);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, options);
+            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
 
             // Act
             Func<Task> act = () => sut.DeleteMessageAsync(message, CancellationToken.None);
@@ -204,7 +205,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
             queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(queueClientFake.Object);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, options);
+            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
 
             // Act
             await sut.EnqueueMessageAsync(message, CancellationToken.None);
@@ -229,7 +230,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
             queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(poisonqueueClientFake.Object);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, options);
+            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
 
             // Act
             await sut.MoveToPoisonQueueAsync(message, CancellationToken.None);
@@ -258,7 +259,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
             queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(poisonqueueClientFake.Object);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, options);
+            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
 
             // Act
             await sut.MoveToPoisonQueueAsync(message, CancellationToken.None);

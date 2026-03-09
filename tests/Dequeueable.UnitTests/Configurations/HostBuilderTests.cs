@@ -44,29 +44,6 @@ namespace Dequeueable.UnitTests.Configurations
         }
 
         [Fact]
-        public void Given_a_HostBuilder_when_RunAsJob_is_called_then_IHostOptions_is_registered_correctly()
-        {
-            // Arrange
-            var hostBuilder = Host.CreateDefaultBuilder()
-            .ConfigureServices(services =>
-            {
-                services
-                .AddAzureQueueStorageServices<TestFunction>()
-                .RunAsJob(options =>
-                {
-                    options.QueueName = "test";
-                    options.ConnectionString = "UseDevelopmentStorage=true";
-                });
-            });
-
-            // Act
-            var host = hostBuilder.Build();
-
-            // Assert
-            host.Services.GetRequiredService<IHostOptions>().Should().BeOfType<Dequeueable.Configurations.HostOptions>();
-        }
-
-        [Fact]
         public void Given_a_HostBuilder_when_AsSingleton_is_called_then_IQueueMessageExecutor_is_registered_correctly()
         {
             // Arrange

@@ -32,7 +32,7 @@ namespace Dequeueable.UnitTests.Services.Singleton
                 .Returns(new Mock<BlobClient>().Object)
                 .Verifiable();
 
-            var sut = new BlobClientProvider(factoryMock.Object, options, singletonHostOptionsMock.Object, loggerMock.Object);
+            var sut = new BlobClientProvider(factoryMock.Object, Options.Create(options), singletonHostOptionsMock.Object, loggerMock.Object);
 
             // Act
             sut.GetClient(fileName);
@@ -71,7 +71,7 @@ namespace Dequeueable.UnitTests.Services.Singleton
                 .Returns(new Mock<BlobClient>().Object)
                 .Verifiable();
 
-            var sut = new BlobClientProvider(factoryMock.Object, options, singletonHostOptionsMock.Object, loggerMock.Object);
+            var sut = new BlobClientProvider(factoryMock.Object, Options.Create(options), singletonHostOptionsMock.Object, loggerMock.Object);
 
             // Act
             sut.GetClient(fileName);
@@ -110,7 +110,7 @@ namespace Dequeueable.UnitTests.Services.Singleton
                 .Returns(new Mock<BlobClient>().Object)
                 .Verifiable();
 
-            var sut = new BlobClientProvider(factoryMock.Object, options, singletonHostOptionsMock.Object, loggerMock.Object);
+            var sut = new BlobClientProvider(factoryMock.Object, Options.Create(options), singletonHostOptionsMock.Object, loggerMock.Object);
 
             // Act
             sut.GetClient(fileName);
@@ -145,7 +145,7 @@ namespace Dequeueable.UnitTests.Services.Singleton
 
             singletonHostOptionsMock.Setup(o => o.Value).Returns(singletonHostOptions);
 
-            var sut = new BlobClientProvider(factoryMock.Object, options, singletonHostOptionsMock.Object, loggerMock.Object);
+            var sut = new BlobClientProvider(factoryMock.Object, Options.Create(options), singletonHostOptionsMock.Object, loggerMock.Object);
 
             // Act
             Action act = () => sut.GetClient(fileName);
@@ -181,7 +181,7 @@ namespace Dequeueable.UnitTests.Services.Singleton
 
             singletonHostOptionsMock.Setup(o => o.Value).Returns(singletonHostOptions);
 
-            var sut = new BlobClientProvider(factoryMock.Object, options, singletonHostOptionsMock.Object, loggerMock.Object);
+            var sut = new BlobClientProvider(factoryMock.Object, Options.Create(options), singletonHostOptionsMock.Object, loggerMock.Object);
 
             // Act
             Action act = () => sut.GetClient(fileName);

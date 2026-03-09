@@ -7,7 +7,7 @@ namespace Dequeueable.Configurations
     /// <summary>
     /// HostOptions to configure the settings of the host
     /// </summary>
-    public class HostOptions : IHostOptions
+    public class HostOptions
     {
         internal static string Dequeueable => nameof(Dequeueable);
 
