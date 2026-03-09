@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
-namespace Dequeueable.UnitTests.Services.Singleton
+namespace Dequeueable.UnitTests.Services.DistributedLock
 {
     public class BlobLeaseManagerTests
     {

@@ -6,29 +6,23 @@ using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 
-namespace Dequeueable.UnitTests.Services.Singleton
+namespace Dequeueable.UnitTests.Services.DistributedLock
 {
     public class DistributedLockManagerTests
     {
         private readonly string _fileName = "someName";
         private readonly string _leaseId = "someId";
 
-        private (DistributedLockManager sut, FakeLogger<DistributedLockManager> logger, IBlobLeaseManager leaseManager) CreateSut(DistributedLockOptions? options = null)
+        [Fact]
+        public async Task Given_a_LockManager_when_AquireLockAsync_is_called_and_the_lock_is_acquired_then_the_leaseId_is_returned()
         {
+            // Arrange
             var logger = new FakeLogger<DistributedLockManager>();
             var leaseManager = Substitute.For<IBlobLeaseManager>();
             var factory = Substitute.For<IBlobLeaseManagerFactory>();
             factory.Create(_fileName).Returns(leaseManager);
 
-            var sut = new DistributedLockManager(logger, factory, Options.Create(options ?? new DistributedLockOptions()));
-            return (sut, logger, leaseManager);
-        }
-
-        [Fact]
-        public async Task Given_a_LockManager_when_AquireLockAsync_is_called_and_the_lock_is_acquired_then_the_leaseId_is_returned()
-        {
-            // Arrange
-            var (sut, logger, leaseManager) = CreateSut();
+            var sut = new DistributedLockManager(logger, factory, Options.Create(new DistributedLockOptions()));
             leaseManager.AcquireAsync(Arg.Any<CancellationToken>()).Returns(_leaseId);
 
             // Act
@@ -43,14 +37,19 @@ namespace Dequeueable.UnitTests.Services.Singleton
         public async Task Given_a_LockManager_when_AquireLockAsync_is_called_and_the_lock_cannot_be_acquired_at_first_then_it_is_retried_correctly()
         {
             // Arrange
-            var (sut, _, leaseManager) = CreateSut(new DistributedLockOptions
+            var logger = new FakeLogger<DistributedLockManager>();
+            var leaseManager = Substitute.For<IBlobLeaseManager>();
+            var factory = Substitute.For<IBlobLeaseManagerFactory>();
+            factory.Create(_fileName).Returns(leaseManager);
+
+            var sut = new DistributedLockManager(logger, factory, Options.Create(new DistributedLockOptions
             {
                 MaxRetries = 5,
                 MinimumPollingIntervalInSeconds = 0,
                 MaximumPollingIntervalInSeconds = 1
-            });
+            }));
 
-            leaseManager.AcquireAsync(Arg.Any<CancellationToken>()).Returns((string?)null, _leaseId);
+            leaseManager.AcquireAsync(Arg.Any<CancellationToken>()).Returns(null, _leaseId);
 
             // Act
             var result = await sut.AquireLockAsync(_fileName, CancellationToken.None);
@@ -64,12 +63,17 @@ namespace Dequeueable.UnitTests.Services.Singleton
         public async Task Given_a_LockManager_when_AquireLockAsync_is_called_and_the_lock_cannot_be_acquired_and_the_MaxRetries_is_reached_then_a_DistributedLockException_is_thrown()
         {
             // Arrange
-            var (sut, _, leaseManager) = CreateSut(new DistributedLockOptions
+            var logger = new FakeLogger<DistributedLockManager>();
+            var leaseManager = Substitute.For<IBlobLeaseManager>();
+            var factory = Substitute.For<IBlobLeaseManagerFactory>();
+            factory.Create(_fileName).Returns(leaseManager);
+
+            var sut = new DistributedLockManager(logger, factory, Options.Create(new DistributedLockOptions
             {
                 MaxRetries = 1,
                 MinimumPollingIntervalInSeconds = 0,
                 MaximumPollingIntervalInSeconds = 1
-            });
+            }));
 
             leaseManager.AcquireAsync(Arg.Any<CancellationToken>()).Returns((string?)null);
 
@@ -82,12 +86,17 @@ namespace Dequeueable.UnitTests.Services.Singleton
         public async Task Given_a_LockManager_when_AquireLockAsync_is_called_and_cancellation_is_requested_then_a_DistributedLockException_is_thrown()
         {
             // Arrange
-            var (sut, _, leaseManager) = CreateSut(new DistributedLockOptions
+            var logger = new FakeLogger<DistributedLockManager>();
+            var leaseManager = Substitute.For<IBlobLeaseManager>();
+            var factory = Substitute.For<IBlobLeaseManagerFactory>();
+            factory.Create(_fileName).Returns(leaseManager);
+
+            var sut = new DistributedLockManager(logger, factory, Options.Create(new DistributedLockOptions
             {
                 MaxRetries = 10,
                 MinimumPollingIntervalInSeconds = 0,
                 MaximumPollingIntervalInSeconds = 1
-            });
+            }));
 
             leaseManager.AcquireAsync(Arg.Any<CancellationToken>()).Returns((string?)null);
             using var cts = new CancellationTokenSource();
@@ -101,7 +110,12 @@ namespace Dequeueable.UnitTests.Services.Singleton
         public async Task Given_a_LockManager_when_RenewLockAsync_is_called_then_the_lock_is_renewed_and_logged()
         {
             // Arrange
-            var (sut, logger, leaseManager) = CreateSut();
+            var logger = new FakeLogger<DistributedLockManager>();
+            var leaseManager = Substitute.For<IBlobLeaseManager>();
+            var factory = Substitute.For<IBlobLeaseManagerFactory>();
+            factory.Create(_fileName).Returns(leaseManager);
+
+            var sut = new DistributedLockManager(logger, factory, Options.Create(new DistributedLockOptions()));
             var nextVisible = DateTimeOffset.UtcNow.AddMinutes(1);
             leaseManager.RenewAsync(_leaseId, Arg.Any<CancellationToken>()).Returns(nextVisible);
 
@@ -117,7 +131,12 @@ namespace Dequeueable.UnitTests.Services.Singleton
         public async Task Given_a_LockManager_when_ReleaseLockAsync_is_called_then_the_lock_is_released()
         {
             // Arrange
-            var (sut, _, leaseManager) = CreateSut();
+            var logger = new FakeLogger<DistributedLockManager>();
+            var leaseManager = Substitute.For<IBlobLeaseManager>();
+            var factory = Substitute.For<IBlobLeaseManagerFactory>();
+            factory.Create(_fileName).Returns(leaseManager);
+
+            var sut = new DistributedLockManager(logger, factory, Options.Create(new DistributedLockOptions()));
             leaseManager.ReleaseAsync(_leaseId, Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
             // Act

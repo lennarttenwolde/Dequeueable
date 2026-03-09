@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
-namespace Dequeueable.UnitTests.Services.Singleton
+namespace Dequeueable.UnitTests.Services.DistributedLock
 {
     public class DistributedLockQueueMessageExecutorTests
     {
@@ -28,7 +28,10 @@ namespace Dequeueable.UnitTests.Services.Singleton
         {
             // Arrange
             var message = new MessageTestDataBuilder().Build();
-            var (sut, _, _) = CreateSut(new DistributedLockOptions { Scope = null! });
+            var lockManager = Substitute.For<IDistributedLockManager>();
+            var executor = Substitute.For<IQueueMessageExecutor>();
+            var distributedLockOptions = new DistributedLockOptions { Scope = null! };
+            var sut = new DistributedLockQueueMessageExecutor(lockManager, executor, TimeProvider.System, Options.Create(distributedLockOptions));
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => sut.ExecuteAsync(message, CancellationToken.None));
@@ -40,7 +43,10 @@ namespace Dequeueable.UnitTests.Services.Singleton
         {
             // Arrange
             var message = new MessageTestDataBuilder().WithBody("{\"KeyDoesNotExist\": \"nothing here\"}").Build();
-            var (sut, _, _) = CreateSut();
+            var lockManager = Substitute.For<IDistributedLockManager>();
+            var executor = Substitute.For<IQueueMessageExecutor>();
+            var distributedLockOptions = new DistributedLockOptions { Scope = _propertyName };
+            var sut = new DistributedLockQueueMessageExecutor(lockManager, executor, TimeProvider.System, Options.Create(distributedLockOptions));
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<DistributedLockException>(() => sut.ExecuteAsync(message, CancellationToken.None));
@@ -52,7 +58,10 @@ namespace Dequeueable.UnitTests.Services.Singleton
         {
             // Arrange
             var message = new MessageTestDataBuilder().WithBody("this is no jason!").Build();
-            var (sut, _, _) = CreateSut();
+            var lockManager = Substitute.For<IDistributedLockManager>();
+            var executor = Substitute.For<IQueueMessageExecutor>();
+            var distributedLockOptions = new DistributedLockOptions { Scope = _propertyName };
+            var sut = new DistributedLockQueueMessageExecutor(lockManager, executor, TimeProvider.System, Options.Create(distributedLockOptions));
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<DistributedLockException>(() => sut.ExecuteAsync(message, CancellationToken.None));
@@ -64,7 +73,10 @@ namespace Dequeueable.UnitTests.Services.Singleton
         {
             // Arrange
             var message = new MessageTestDataBuilder().WithBody($"{{\"{_propertyName}\": \"\"}}").Build();
-            var (sut, _, _) = CreateSut();
+            var lockManager = Substitute.For<IDistributedLockManager>();
+            var executor = Substitute.For<IQueueMessageExecutor>();
+            var distributedLockOptions = new DistributedLockOptions { Scope = _propertyName };
+            var sut = new DistributedLockQueueMessageExecutor(lockManager, executor, TimeProvider.System, Options.Create(distributedLockOptions));
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<DistributedLockException>(() => sut.ExecuteAsync(message, CancellationToken.None));
@@ -76,7 +88,10 @@ namespace Dequeueable.UnitTests.Services.Singleton
         {
             // Arrange
             var message = new MessageTestDataBuilder().WithBody($"{{\"{_propertyName}\": \"{_scope}\"}}").Build();
-            var (sut, lockManager, executor) = CreateSut();
+            var lockManager = Substitute.For<IDistributedLockManager>();
+            var executor = Substitute.For<IQueueMessageExecutor>();
+            var distributedLockOptions = new DistributedLockOptions { Scope = _propertyName };
+            var sut = new DistributedLockQueueMessageExecutor(lockManager, executor, TimeProvider.System, Options.Create(distributedLockOptions));
 
             lockManager.AquireLockAsync(_scope, Arg.Any<CancellationToken>()).Returns(_leaseId);
             lockManager.ReleaseLockAsync(_leaseId, _scope, Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
@@ -93,7 +108,10 @@ namespace Dequeueable.UnitTests.Services.Singleton
         {
             // Arrange
             var message = new MessageTestDataBuilder().WithBody($"{{\"{_propertyName}\": \"{_scope}\"}}").Build();
-            var (sut, lockManager, executor) = CreateSut();
+            var lockManager = Substitute.For<IDistributedLockManager>();
+            var executor = Substitute.For<IQueueMessageExecutor>();
+            var distributedLockOptions = new DistributedLockOptions { Scope = _propertyName };
+            var sut = new DistributedLockQueueMessageExecutor(lockManager, executor, TimeProvider.System, Options.Create(distributedLockOptions));
 
             lockManager.AquireLockAsync(_scope, Arg.Any<CancellationToken>()).Returns(_leaseId);
             lockManager.ReleaseLockAsync(_leaseId, _scope, Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
@@ -109,7 +127,10 @@ namespace Dequeueable.UnitTests.Services.Singleton
         {
             // Arrange
             var message = new MessageTestDataBuilder().WithBody($"{{\"{_propertyName}\": \"{_scope}\"}}").Build();
-            var (sut, lockManager, executor) = CreateSut();
+            var lockManager = Substitute.For<IDistributedLockManager>();
+            var executor = Substitute.For<IQueueMessageExecutor>();
+            var distributedLockOptions = new DistributedLockOptions { Scope = _propertyName };
+            var sut = new DistributedLockQueueMessageExecutor(lockManager, executor, TimeProvider.System, Options.Create(distributedLockOptions));
 
             lockManager.AquireLockAsync(_scope, Arg.Any<CancellationToken>()).Returns(_leaseId);
             lockManager.ReleaseLockAsync(_leaseId, _scope, Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);

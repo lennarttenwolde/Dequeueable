@@ -11,7 +11,7 @@ namespace Dequeueable.UnitTests.Services.Hosts
     public class JobExecutorTests
     {
         [Fact]
-        public async Task Given_a_JobExecutor_when_ExecuteAsync_is_called_but_no_messages_are_retrieved_then_the_handler_is_not_called()
+        public async Task Given_a_JobExecutor_when_ExecuteAsync_is_called_but_no_message_is_retrieved_then_the_handler_is_not_called()
         {
             // Arrange
             var queueMessageManager = Substitute.For<IQueueMessageManager>();
@@ -31,7 +31,7 @@ namespace Dequeueable.UnitTests.Services.Hosts
         }
 
         [Fact]
-        public async Task Given_a_JobExecutor_when_ExecuteAsync_is_called_and_messages_are_retrieved_then_the_handler_is_called_correctly()
+        public async Task Given_a_JobExecutor_when_ExecuteAsync_is_called_and_message_is_retrieved_then_the_handler_is_called_correctly()
         {
             // Arrange
             var message = new MessageTestDataBuilder().WithmessageId("1").Build();

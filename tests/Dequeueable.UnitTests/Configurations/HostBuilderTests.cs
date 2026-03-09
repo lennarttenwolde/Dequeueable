@@ -11,7 +11,7 @@ namespace Dequeueable.UnitTests.Configurations
 {
     public class HostBuilderTests
     {
-        private sealed class TestFunction : IQueueJob
+        private sealed class TestJob : IQueueJob
         {
             public Task ExecuteAsync(Message message, CancellationToken cancellationToken)
             {
@@ -27,7 +27,7 @@ namespace Dequeueable.UnitTests.Configurations
             .ConfigureServices(services =>
             {
                 services
-                .AddDequeueable<TestFunction>(options =>
+                .AddDequeueable<TestJob>(options =>
                 {
                     options.QueueName = "test";
                     options.ConnectionString = "UseDevelopmentStorage=true";
@@ -49,7 +49,7 @@ namespace Dequeueable.UnitTests.Configurations
             .ConfigureServices(services =>
             {
                 services
-                .AddDequeueable<TestFunction>(options =>
+                .AddDequeueable<TestJob>(options =>
                 {
                     options.QueueName = "test";
                     options.ConnectionString = "UseDevelopmentStorage=true";

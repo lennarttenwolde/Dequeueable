@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Dequeueable.UnitTests.Configurations
 {
-    public class SingletonHostOptionsTests
+    public class DistributedLockOptionsTests
     {
         [Fact]
         public void Given_a_DistributedLockOptions_when_the_Scope_is_set_to_empty_then_the_validation_result_contains_the_correct_error_message()
