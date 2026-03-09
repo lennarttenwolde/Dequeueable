@@ -7,13 +7,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{F680
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BF8F3BFE-5BF7-472E-A8B5-6F9957FDE3C0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dequeueable.AzureQueueStorage", "lib\Dequeueable.AzureQueueStorage\Dequeueable.AzureQueueStorage.csproj", "{6F835E0D-58E4-40C4-85FA-63FE7F8A2325}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dequeueable", "lib\Dequeueable\Dequeueable.csproj", "{6F835E0D-58E4-40C4-85FA-63FE7F8A2325}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dequeueable.AzureQueueStorage.UnitTests", "tests\Dequeueable.AzureQueueStorage.UnitTests\Dequeueable.AzureQueueStorage.UnitTests.csproj", "{C7D6F742-F1B9-42D7-8C68-07209ADCBD6B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dequeueable.UnitTests", "tests\Dequeueable.UnitTests\Dequeueable.UnitTests.csproj", "{C7D6F742-F1B9-42D7-8C68-07209ADCBD6B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dequeueable.AzureQueueStorage.IntegrationTests", "tests\Dequeueable.AzureQueueStorage.IntegrationTests\Dequeueable.AzureQueueStorage.IntegrationTests.csproj", "{B89684E3-D232-4819-9B1F-8CF0CD937E8C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dequeueable.IntegrationTests", "tests\Dequeueable.IntegrationTests\Dequeueable.IntegrationTests.csproj", "{B89684E3-D232-4819-9B1F-8CF0CD937E8C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dequeueable.AzureQueueStorage.SampleJob", "samples\Dequeueable.AzureQueueStorage.SampleJob\Dequeueable.AzureQueueStorage.SampleJob.csproj", "{347E828A-0A4B-493E-BE44-E1A387323DC3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dequeueable.SampleJob", "samples\Dequeueable.SampleJob\Dequeueable.SampleJob.csproj", "{347E828A-0A4B-493E-BE44-E1A387323DC3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D3D5D5E5-E095-4B24-8E2F-D6C6BE91B0E1}"
 	ProjectSection(SolutionItems) = preProject
