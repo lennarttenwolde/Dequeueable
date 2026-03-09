@@ -1,5 +1,4 @@
-﻿using Dequeueable.Models;
-using Dequeueable.Services.Queues;
+﻿using Dequeueable.Services.Queues;
 using Microsoft.Extensions.Logging;
 
 namespace Dequeueable.Services.Hosts
@@ -13,7 +12,6 @@ namespace Dequeueable.Services.Hosts
         {
             try
             {
-
                 var message = await messagesManager.RetrieveMessageAsync(cancellationToken);
 
                 if (message is not null)

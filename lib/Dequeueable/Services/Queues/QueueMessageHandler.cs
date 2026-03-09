@@ -68,7 +68,7 @@ namespace Dequeueable.Services.Queues
         }
     }
 
-    internal static partial class QueueMessageHandlerLogs
+    internal static partial class Log
     {
         [LoggerMessage(Level = LogLevel.Information, Message = "Executed message with id '{MessageId}' (Succeeded)")]
         internal static partial void MessageSucceeded(this ILogger<QueueMessageHandler> logger, string messageId);

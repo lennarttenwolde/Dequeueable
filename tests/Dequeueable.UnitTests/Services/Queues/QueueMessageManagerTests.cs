@@ -37,7 +37,7 @@ namespace Dequeueable.UnitTests.Services.Queues
         }
 
         [Fact]
-        public async Task Given_a_QueueMessageManager_when_RetrieveMessageAsync_is_called_and_a_404_exception_occurred_then_the_queue_is_created_and_the_message_is_null()
+        public async Task Given_a_QueueMessageManager_when_RetrieveMessageAsync_is_called_and_a_404_exception_occurred_then_the_queue_is_created_and_the_message_is_handled()
         {
             // Arrange
             var options = new HostOptions();
@@ -63,7 +63,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             var message = await sut.RetrieveMessageAsync(CancellationToken.None);
 
             // Assert
-            message.Should().BeNull();
+            message!.MessageId.Should().Be(queueMessages[0].MessageId);
         }
 
         [Fact]

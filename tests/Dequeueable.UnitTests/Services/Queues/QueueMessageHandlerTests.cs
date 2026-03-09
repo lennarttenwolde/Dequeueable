@@ -4,7 +4,7 @@ using Dequeueable.UnitTests.TestDataBuilders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-
+using Microsoft.Extensions.Logging.Testing;
 namespace Dequeueable.UnitTests.Services.Queues
 {
     public class QueueMessageHandlerTests
@@ -17,21 +17,15 @@ namespace Dequeueable.UnitTests.Services.Queues
             var queueMessageManagerMock = new Mock<IQueueMessageManager>(MockBehavior.Strict);
             var queueMessageExecutorMock = new Mock<IQueueMessageExecutor>(MockBehavior.Strict);
             var options = new HostOptions();
-            var loggerMock = new Mock<ILogger<QueueMessageHandler>>(MockBehavior.Strict);
+            var loggerMock = new FakeLogger<QueueMessageHandler>();
             var timeProvider = TimeProvider.System;
 
             queueMessageExecutorMock.Setup(e => e.ExecuteAsync(message, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask).Verifiable();
             queueMessageManagerMock.Setup(m => m.DeleteMessageAsync(message, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask).Verifiable();
 
-            loggerMock.Setup(
-                x => x.Log(
-                It.Is<LogLevel>(l => l == LogLevel.Information),
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Executed message with id '{message.MessageId}' (Succeeded)")),
-                null,
-                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)));
 
-            var sut = new QueueMessageHandler(queueMessageExecutorMock.Object, queueMessageManagerMock.Object, timeProvider, loggerMock.Object, Options.Create(options));
+
+            var sut = new QueueMessageHandler(queueMessageExecutorMock.Object, queueMessageManagerMock.Object, timeProvider, loggerMock, Options.Create(options));
 
             // Act
             await sut.HandleAsync(message, CancellationToken.None);
@@ -39,6 +33,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             // Assert
             queueMessageExecutorMock.Verify();
             queueMessageManagerMock.Verify();
+            Assert.Contains(loggerMock.Collector.GetSnapshot(), e => e.Level == LogLevel.Information && e.Message!.Contains(message.MessageId, StringComparison.OrdinalIgnoreCase));
         }
 
         [Fact]
@@ -50,21 +45,13 @@ namespace Dequeueable.UnitTests.Services.Queues
             var queueMessageManagerMock = new Mock<IQueueMessageManager>(MockBehavior.Strict);
             var queueMessageExecutorMock = new Mock<IQueueMessageExecutor>(MockBehavior.Strict);
             var options = new HostOptions();
-            var loggerMock = new Mock<ILogger<QueueMessageHandler>>(MockBehavior.Strict);
+            var loggerMock = new FakeLogger<QueueMessageHandler>();
             var timeProvider = TimeProvider.System;
 
             queueMessageExecutorMock.Setup(e => e.ExecuteAsync(message, It.IsAny<CancellationToken>())).ThrowsAsync(exception);
             queueMessageManagerMock.Setup(m => m.EnqueueMessageAsync(message, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask).Verifiable();
 
-            loggerMock.Setup(
-                x => x.Log(
-                It.Is<LogLevel>(l => l == LogLevel.Error),
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"An error occurred while executing the queue message with id '{message.MessageId}'")),
-                It.IsAny<Exception>(),
-                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)));
-
-            var sut = new QueueMessageHandler(queueMessageExecutorMock.Object, queueMessageManagerMock.Object, timeProvider, loggerMock.Object, Options.Create(options));
+            var sut = new QueueMessageHandler(queueMessageExecutorMock.Object, queueMessageManagerMock.Object, timeProvider, loggerMock, Options.Create(options));
 
             // Act
             await sut.HandleAsync(message, CancellationToken.None);
@@ -72,6 +59,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             // Assert
             queueMessageExecutorMock.Verify();
             queueMessageManagerMock.Verify();
+            Assert.Contains(loggerMock.Collector.GetSnapshot(), e => e.Level == LogLevel.Error && e.Message.Equals($"An error occurred while executing the queue message with id '{message.MessageId}'", StringComparison.OrdinalIgnoreCase));
         }
 
         [Fact]
@@ -83,21 +71,13 @@ namespace Dequeueable.UnitTests.Services.Queues
             var queueMessageManagerMock = new Mock<IQueueMessageManager>(MockBehavior.Strict);
             var queueMessageExecutorMock = new Mock<IQueueMessageExecutor>(MockBehavior.Strict);
             var options = new HostOptions { MaxDequeueCount = message.DequeueCount };
-            var loggerMock = new Mock<ILogger<QueueMessageHandler>>(MockBehavior.Strict);
+            var loggerMock = new FakeLogger<QueueMessageHandler>();
             var timeProvider = TimeProvider.System;
 
             queueMessageExecutorMock.Setup(e => e.ExecuteAsync(message, It.IsAny<CancellationToken>())).ThrowsAsync(exception);
             queueMessageManagerMock.Setup(m => m.MoveToPoisonQueueAsync(message, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask).Verifiable();
 
-            loggerMock.Setup(
-                x => x.Log(
-                It.Is<LogLevel>(l => l == LogLevel.Error),
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"An error occurred while executing the queue message with id '{message.MessageId}'")),
-                It.IsAny<Exception>(),
-                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)));
-
-            var sut = new QueueMessageHandler(queueMessageExecutorMock.Object, queueMessageManagerMock.Object, timeProvider, loggerMock.Object, Options.Create(options));
+            var sut = new QueueMessageHandler(queueMessageExecutorMock.Object, queueMessageManagerMock.Object, timeProvider, loggerMock, Options.Create(options));
 
             // Act
             await sut.HandleAsync(message, CancellationToken.None);
@@ -105,6 +85,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             // Assert
             queueMessageExecutorMock.Verify();
             queueMessageManagerMock.Verify();
+            Assert.Contains(loggerMock.Collector.GetSnapshot(), e => e.Level == LogLevel.Error && e.Message.Equals($"An error occurred while executing the queue message with id '{message.MessageId}'", StringComparison.OrdinalIgnoreCase));
         }
 
         [Fact]
@@ -116,22 +97,14 @@ namespace Dequeueable.UnitTests.Services.Queues
             var queueMessageManagerMock = new Mock<IQueueMessageManager>(MockBehavior.Strict);
             var queueMessageExecutorMock = new Mock<IQueueMessageExecutor>(MockBehavior.Strict);
             var options = new HostOptions { MaxDequeueCount = message.DequeueCount + 2 };
-            var loggerMock = new Mock<ILogger<QueueMessageHandler>>(MockBehavior.Strict);
+            var loggerMock = new FakeLogger<QueueMessageHandler>();
             var timeProvider = TimeProvider.System;
 
             queueMessageExecutorMock.Setup(e => e.ExecuteAsync(message, It.IsAny<CancellationToken>())).Returns(Task.Delay(TimeSpan.FromSeconds(60)));
             queueMessageManagerMock.Setup(m => m.UpdateVisibilityTimeOutAsync(message, It.IsAny<CancellationToken>())).ThrowsAsync(exception);
             queueMessageManagerMock.Setup(m => m.EnqueueMessageAsync(message, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask).Verifiable();
 
-            loggerMock.Setup(
-                x => x.Log(
-                It.Is<LogLevel>(l => l == LogLevel.Error),
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"An error occurred while executing the queue message with id '{message.MessageId}'")),
-                It.IsAny<VisibilityTimeoutException>(),
-                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)));
-
-            var sut = new QueueMessageHandler(queueMessageExecutorMock.Object, queueMessageManagerMock.Object, timeProvider, loggerMock.Object, Options.Create(options))
+            var sut = new QueueMessageHandler(queueMessageExecutorMock.Object, queueMessageManagerMock.Object, timeProvider, loggerMock, Options.Create(options))
             {
                 MinimalVisibilityTimeoutDelay = TimeSpan.Zero
             };
@@ -142,6 +115,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             // Assert
             queueMessageExecutorMock.Verify();
             queueMessageManagerMock.Verify();
+            Assert.Contains(loggerMock.Collector.GetSnapshot(), e => e.Level == LogLevel.Error && e.Message.Equals($"An error occurred while executing the queue message with id '{message.MessageId}'", StringComparison.OrdinalIgnoreCase));
         }
     }
 }
