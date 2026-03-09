@@ -2,25 +2,27 @@
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
-	<NoWarn>
-		CA1707; <!-- Identifiers should not contain underscores -->
-		CA2007; <!-- Do not directly await a Task -->
-		CA2201; <!-- Do not raise reserved exception types -->
-    CA1873 <!-- Avoid potentially expensive logging -->
-	</NoWarn>
+    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks></TargetFrameworks>
+    <NoWarn>
+      CA1707; <!-- Identifiers should not contain underscores -->
+      CA2007; <!-- Do not directly await a Task -->
+      CA2201; <!-- Do not raise reserved exception types -->
+      CA1873 <!-- Avoid potentially expensive logging -->
+    </NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
 
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.11" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-	  <PackageReference Include="Testcontainers" Version="4.9.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.3" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
+    <PackageReference Include="Testcontainers.Azurite" Version="4.10.0" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="6.0.4">
+    <PackageReference Include="coverlet.collector" Version="8.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

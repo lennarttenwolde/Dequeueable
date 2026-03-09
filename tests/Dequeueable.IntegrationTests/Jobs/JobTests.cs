@@ -1,27 +1,36 @@
 ﻿using Azure.Storage.Queues;
-using Dequeueable.IntegrationTests.Fixtures;
 using Dequeueable.IntegrationTests.TestDataBuilders;
-using Dequeueable.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Testcontainers.Azurite;
 
 namespace Dequeueable.IntegrationTests.Jobs
 {
-    public class JobTests : IClassFixture<AzuriteFixture>, IAsyncLifetime
+    public class JobTests : IAsyncLifetime
     {
         private readonly QueueClientOptions _queueClientOptions = new() { MessageEncoding = QueueMessageEncoding.Base64 };
-        private readonly AzuriteFixture _azuriteFixture;
-        private readonly string _queueName;
-        private readonly QueueClient _queueClient;
+        private readonly AzuriteContainer _azuriteContainer;
+        private readonly string _queueName = "jobqueue";
+        private QueueClient _queueClient = null!;
 
-        public JobTests(AzuriteFixture azuriteFixture)
+        public JobTests()
         {
-            _azuriteFixture = azuriteFixture;
-            _queueName = "jobqueue";
-            _queueClient = new QueueClient(_azuriteFixture.ConnectionString, _queueName, _queueClientOptions);
+            _azuriteContainer = _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.35.0")
+                .WithAutoRemove(true)
+                .Build();
         }
 
-        public Task InitializeAsync() => _queueClient.CreateAsync();
-        public Task DisposeAsync() => _queueClient.DeleteAsync();
+        public async Task InitializeAsync()
+        {
+            await _azuriteContainer.StartAsync();
+            _queueClient = new QueueClient(_azuriteContainer.GetConnectionString(), _queueName, _queueClientOptions);
+            await _queueClient.CreateAsync();
+
+        }
+        public async Task DisposeAsync()
+        {
+            await _queueClient.DeleteAsync();
+            await _azuriteContainer.DisposeAsync();
+        }
 
         [Fact]
         public async Task Given_a_Queue_when_is_has_two_messages_then_only_one_is_handled_correctly()
@@ -30,7 +39,7 @@ namespace Dequeueable.IntegrationTests.Jobs
             var fakeService = new FakeService();
             var factory = new JobHostFactory<TestJob>(opt =>
             {
-                opt.ConnectionString = _azuriteFixture.ConnectionString;
+                opt.ConnectionString = _azuriteContainer.GetConnectionString();
                 opt.QueueName = _queueName;
             });
 
@@ -62,7 +71,7 @@ namespace Dequeueable.IntegrationTests.Jobs
             var fakeService = new FakeService(shouldThrow: true);
             var factory = new JobHostFactory<TestJob>(opt =>
             {
-                opt.ConnectionString = _azuriteFixture.ConnectionString;
+                opt.ConnectionString = _azuriteContainer.GetConnectionString();
                 opt.QueueName = _queueName;
                 opt.MaxDequeueCount = 5;
             });
@@ -90,7 +99,7 @@ namespace Dequeueable.IntegrationTests.Jobs
             var fakeService = new FakeService(shouldThrow: true);
             var factory = new JobHostFactory<TestJob>(opt =>
             {
-                opt.ConnectionString = _azuriteFixture.ConnectionString;
+                opt.ConnectionString = _azuriteContainer.GetConnectionString();
                 opt.QueueName = _queueName;
                 opt.MaxDequeueCount = 1;
                 opt.PoisonQueueSuffix = poisonQueueSuffix;
@@ -108,7 +117,7 @@ namespace Dequeueable.IntegrationTests.Jobs
             var peekedMessage = await _queueClient.PeekMessageAsync();
             Assert.Null(peekedMessage.Value);
 
-            var poisonQueueClient = new QueueClient(_azuriteFixture.ConnectionString, $"{_queueName}-{poisonQueueSuffix}", _queueClientOptions);
+            var poisonQueueClient = new QueueClient(_azuriteContainer.GetConnectionString(), $"{_queueName}-{poisonQueueSuffix}", _queueClientOptions);
             var peekedPoisonMessage = await poisonQueueClient.PeekMessageAsync();
             Assert.NotNull(peekedPoisonMessage.Value);
             Assert.Equal(message, peekedPoisonMessage.Value.Body.ToString());

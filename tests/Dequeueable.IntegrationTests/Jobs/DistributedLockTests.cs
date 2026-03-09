@@ -1,31 +1,39 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
-using Dequeueable.Configurations;
-using Dequeueable.IntegrationTests.Fixtures;
 using Dequeueable.IntegrationTests.TestDataBuilders;
-using Dequeueable.Services.DistributedLock;
 using Microsoft.Extensions.DependencyInjection;
+using Testcontainers.Azurite;
 
 namespace Dequeueable.IntegrationTests.Jobs
 {
-    public class DistributedLockTests : IClassFixture<AzuriteFixture>, IAsyncLifetime
+    public class DistributedLockTests : IAsyncLifetime
     {
         private readonly QueueClientOptions _queueClientOptions = new() { MessageEncoding = QueueMessageEncoding.Base64 };
-        private readonly AzuriteFixture _azuriteFixture;
-        private readonly string _queueName;
-        private readonly QueueClient _queueClient;
+        private readonly AzuriteContainer _azuriteContainer;
+        private readonly string _queueName = "singletonqueue";
+        private QueueClient _queueClient = null!;
         private readonly string _containerName = "joblock";
         private readonly string _scope = "Id";
 
-        public DistributedLockTests(AzuriteFixture azuriteFixture)
+        public DistributedLockTests()
         {
-            _azuriteFixture = azuriteFixture;
-            _queueName = "singletonqueue";
-            _queueClient = new QueueClient(_azuriteFixture.ConnectionString, _queueName, _queueClientOptions);
+            _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.35.0")
+                .WithAutoRemove(true)
+                .Build();
         }
 
-        public Task InitializeAsync() => _queueClient.CreateAsync();
-        public Task DisposeAsync() => _queueClient.DeleteAsync();
+        public async Task InitializeAsync()
+        {
+            await _azuriteContainer.StartAsync();
+            _queueClient = new QueueClient(_azuriteContainer.GetConnectionString(), _queueName, _queueClientOptions);
+            await _queueClient.CreateAsync();
+
+        }
+        public async Task DisposeAsync()
+        {
+            await _queueClient.DeleteAsync();
+            await _azuriteContainer.DisposeAsync();
+        }
 
         [Fact]
         public async Task Given_two_JobInstances_run_as_distributed_lock_when_a_queue_has_two_messages_then_both_are_handled_correctly()
@@ -34,7 +42,7 @@ namespace Dequeueable.IntegrationTests.Jobs
             var fakeService = new FakeService();
             var factory = new JobHostFactory<TestJob>(opt =>
             {
-                opt.ConnectionString = _azuriteFixture.ConnectionString;
+                opt.ConnectionString = _azuriteContainer.GetConnectionString();
                 opt.QueueName = _queueName;
 
             }, opt =>
@@ -62,7 +70,7 @@ namespace Dequeueable.IntegrationTests.Jobs
             var peekedMessage = await _queueClient.PeekMessageAsync();
             Assert.Null(peekedMessage.Value);
 
-            var blobClient = new BlobContainerClient(_azuriteFixture.ConnectionString, _containerName).GetBlobClient("1");
+            var blobClient = new BlobContainerClient(_azuriteContainer.GetConnectionString(), _containerName).GetBlobClient("1");
             Assert.True((await blobClient.ExistsAsync()).Value);
         }
     }
