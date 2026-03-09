@@ -1,157 +1,63 @@
-# Sample job
+# Dequeueable Sample Job
 
-## Docker
+This sample demonstrates how to run a basic ephemeral job using Dequeueable with a local Azure Queue Storage emulator (Azurite).
 
-### Build
+## Prerequisites
 
-```
-docker build -t <yourtagname> -f samples/Dequeueable.SampleJob/deployment/Dockerfile .
-```
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [Docker](https://www.docker.com/get-started)
 
-Image stats:
+## Getting started
 
-```
-docker images -f reference=lenndewolten/dequeueable:azure-queue-storage-samplejob-v2
+### 1. Start Azurite
 
-> REPOSITORY                 TAG                                IMAGE ID       CREATED         SIZE
-> lenndewolten/dequeueable   azure-queue-storage-samplejob-v2   2709a261957e   6 minutes ago   90.8MB
-```
-
-## Kubernetes
-
-### Deployment
-
-This sample is using [KEDA](https://keda.sh/) to automatically schedule the jobs based on the messages on the queue
-
-```
-kubectl apply -f azurite.yaml
-kubectl apply -f scaledjob.yaml
+Run Azurite locally using Docker:
+```bash
+docker run -d \
+  --rm \
+  --name azurite \
+  -p 10000:10000 \
+  -p 10001:10001 \
+  -p 10002:10002 \
+  mcr.microsoft.com/azure-storage/azurite:latest
 ```
 
-#### **Connect to azurite**
+### 2. Create the queue
 
-Get the public IP address of one of your nodes that is running a Hello World pod. How you get this address depends on how you set up your cluster. For example, if you are using Minikube or Docker Desktop, you can see the node address by running kubectl cluster-info.
-
-```
-kubectl cluster-info
-
-> Kubernetes control plane is running at https://kubernetes.docker.internal:6443
-> CoreDNS is running at https://kubernetes.docker.internal:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+Use the Azure Storage Explorer or the Azure CLI to create a queue named `testqueue`:
+```bash
+az storage queue create --name testqueue --connection-string "UseDevelopmentStorage=true"
 ```
 
-#### **Get Azurite NodePort IP**
-
-```
- kubectl get svc
-
-> NAME                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT> (S)                                           AGE
-> kubernetes                ClusterIP   10.96.0.1       <none>        443/> TCP                                           209d
-> storage-azurite-service   NodePort    10.106.222.95   <none>        10000:32444/TCP,10001:30623/TCP,10002:32460/TCP     26s
+### 3. Send a message
+```bash
+az storage message put \
+  --queue-name testqueue \
+  --content "Hello from Dequeueable!" \
+  --connection-string "UseDevelopmentStorage=true"
 ```
 
-#### **Construct connection string**
+### 4. Configure the sample
 
-With the output above, the connection string would be:
-
-```
-DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://kubernetes.docker.internal:32444/devstoreaccount1;QueueEndpoint=http://kubernetes.docker.internal:30623/devstoreaccount1;TableEndpoint=http://kubernetes.docker.internal:32460/devstoreaccount1;
-```
-
-#### **Magic!**
-
-After a message is added to the queue:
-
-```
-kubectl get pods
-
-> NAME                                          READY   STATUS    RESTARTS   AGE
-> queuejob-consumer-m8zpl-jpqws                 1/1     Running   0          7s
-> storage-azurite-deployment-6f5cffcf95-jd4zv   1/1     Running   0          3m44s
+The sample is pre-configured to use Azurite via `appsettings.json`:
+```json
+{
+  "Dequeueable": {
+    "ConnectionString": "UseDevelopmentStorage=true",
+    "QueueName": "testqueue"
+  }
+}
 ```
 
-```
-kubectl get pods
-
-> NAME                                           READY   STATUS      RESTARTS       AGE
-> queuejob-consumer-m8zpl-jpqws                  0/1     Completed   0              2m51s
-> storage-azurite-deployment-6f5cffcf95-jd4zv    1/1     Running     56 (64m ago)   197d
+### 5. Run the sample
+```bash
+cd samples/Dequeueable.SampleJob
+dotnet run --framework net10.0
 ```
 
-Logs when when four messages are handled:
+The job will retrieve the message from the queue, execute it, and shut down.
 
-```
-kubectl logs pods/queuejob-consumer-m8zpl-jpqws
-
-> info: Microsoft.Hosting.Lifetime[0]
->       Application started. Press Ctrl+C to shut down.
-> info: Microsoft.Hosting.Lifetime[0]
->       Hosting environment: Production
-> info: Microsoft.Hosting.Lifetime[0]
->       Content root path: /app
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 0
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 0
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 0
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 0
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 1
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 1
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 1
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 1
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 2
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 2
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 2
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 2
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 3
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 3
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 3
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 3
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 4
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 4
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 4
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 4
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 5
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 5
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 5
-> info: Dequeueable.SampleJob.Functions.TestFunction[0]
->       Executing job loop 5
-> info: Dequeueable.Services.Queues.QueueMessageHandler[0]
->       Executed message with id 'c134e005-7f93-4415-b979-5e388771510b' (Succeeded)
-> info: Dequeueable.Services.Queues.QueueMessageHandler[0]
->       Executed message with id 'fe0169f5-9a13-425e-bb42-fc4946774ab6' (Succeeded)
-> info: Dequeueable.Services.Queues.QueueMessageHandler[0]
->       Executed message with id 'e370feff-855e-4f7c-8e0e-8f0c92170013' (Succeeded)
-> info: Dequeueable.Services.Queues.QueueMessageHandler[0]
->       Executed message with id '45f69fe7-04b3-44ee-a110-816c21b60bce' (Succeeded)
-> info: Dequeueable.Services.Queues.QueueMessageHandler[0]
->       Executed message with id 'c134e005-7f93-4415-b979-5e388771510b' (Succeeded)
-> info: Dequeueable.Services.Queues.QueueMessageHandler[0]
->       Executed message with id 'e370feff-855e-4f7c-8e0e-8f0c92170013' (Succeeded)
-> info: Dequeueable.Services.Queues.QueueMessageHandler[0]
->       Executed message with id '45f69fe7-04b3-44ee-a110-816c21b60bce' (Succeeded)
-> info: Dequeueable.Services.Queues.QueueMessageHandler[0]
->       Executed message with id 'fe0169f5-9a13-425e-bb42-fc4946774ab6' (Succeeded)
-> info: Microsoft.Hosting.Lifetime[0]
->       Application is shutting down...
+## Stopping Azurite
+```bash
+docker stop azurite && docker rm azurite
 ```

@@ -1,19 +1,22 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine as build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 WORKDIR /app
 
+ARG RUNTIME=linux-musl-arm64
+
 COPY /samples/Dequeueable.SampleJob samples/consoleapp
-COPY /lib lib
+COPY lib lib
 COPY Directory.Build.props .
 
-WORKDIR samples/consoleapp
-RUN dotnet restore --runtime linux-musl-x64
+WORKDIR /app/samples/consoleapp
+RUN dotnet restore --runtime $RUNTIME -p:TargetFramework=net10.0
 RUN dotnet publish -c Release -o /app/publish \
   --no-restore \
-  --runtime linux-musl-x64 \
+  --runtime $RUNTIME \
+  --framework net10.0 \
   --self-contained true \
   /p:PublishSingleFile=true 
 
-FROM mcr.microsoft.com/dotnet/runtime-deps:8.0-alpine AS runtime
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-alpine AS runtime
 RUN adduser --disabled-password \
   --home /app \
   --gecos '' dotnetuser && chown -R dotnetuser /app

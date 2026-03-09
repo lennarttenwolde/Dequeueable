@@ -1,0 +1,26 @@
+services:
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: azurite
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+    networks:
+      - dequeueable
+
+  sample-job:
+    build:
+      context: ../../..
+      dockerfile: samples/Dequeueable.SampleJob/deployment/Dockerfile
+    environment:
+      - "Dequeueable__ConnectionString=AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OWIziMFQiiLM4GCjKTXsxoF0JKFfNdnGGFKvZPpN+VjEQJpO+v3Kw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1"
+      - "Dequeueable__QueueName=testqueue"
+    depends_on:
+      - azurite
+    networks:
+      - dequeueable
+
+networks:
+  dequeueable:
+    driver: bridge
