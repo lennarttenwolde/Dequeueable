@@ -1,7 +1,7 @@
 ﻿using Dequeueable.IntegrationTests.TestDataBuilders;
-using Dequeueable.Extentions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Dequeueable.Extensions;
 
 namespace Dequeueable.IntegrationTests
 {
@@ -40,10 +40,10 @@ namespace Dequeueable.IntegrationTests
             return _hostBuilder;
         }
 
-        public Services.Hosts.IHostExecutor Build()
+        public Services.Hosts.IJobExecutor Build()
         {
             var host = _hostBuilder.Build();
-            return host.Services.GetRequiredService<Services.Hosts.IHostExecutor>();
+            return host.Services.GetRequiredService<Services.Hosts.IJobExecutor>();
         }
     }
 }

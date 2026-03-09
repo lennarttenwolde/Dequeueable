@@ -1,6 +1,18 @@
-﻿using Dequeueable.Extentions;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Dequeueable.SampleJob.Jobs;
+using Dequeueable.Extensions;
+
+// await Host.CreateDefaultBuilder(args)
+// .ConfigureServices(services =>
+// {
+//     services.AddDequeueable<TestJob>(options =>
+//     {
+//         //// Uncomment for identity flow
+//         //options.AuthenticationScheme = new DefaultAzureCredential();
+//         //options.AccountName = "storageaccountname";
+//     });
+// })
+// .RunConsoleAsync();
 
 await Host.CreateDefaultBuilder(args)
 .ConfigureServices(services =>
@@ -11,5 +23,4 @@ await Host.CreateDefaultBuilder(args)
         //options.AuthenticationScheme = new DefaultAzureCredential();
         //options.AccountName = "storageaccountname";
     });
-})
-.RunConsoleAsync();
+}).RunJobAsync();

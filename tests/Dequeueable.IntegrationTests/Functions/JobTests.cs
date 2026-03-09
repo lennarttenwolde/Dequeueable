@@ -33,7 +33,7 @@ namespace Dequeueable.IntegrationTests.Functions
         }
 
         [Fact]
-        public async Task Given_a_Queue_when_is_has_two_messages_then_they_are_handled_correctly()
+        public async Task Given_a_Queue_when_is_has_two_messages_then_only_one_is_handled_correctly()
         {
             // Arrange
             var factory = new JobHostFactory<TestFunction>(opt =>
@@ -58,13 +58,13 @@ namespace Dequeueable.IntegrationTests.Functions
 
             // Act
             var host = factory.Build();
-            await host.HandleAsync(CancellationToken.None);
+            await host.ExecuteAsync(CancellationToken.None);
 
             // Assert
-            var peekedMessage = await _queueClient.PeekMessageAsync();
-            peekedMessage.Value.Should().BeNull();
+            var peekedMessages = await _queueClient.PeekMessagesAsync();
+            peekedMessages.Value.Should().HaveCount(1);
 
-            foreach (var message in messages)
+            foreach (var message in messages.Where(m => m != peekedMessages.Value.First().Body.ToString()))
             {
                 fakeServiceMock.Verify(f => f.Execute(It.Is<Message>(m => m.Body.ToString() == message)), Times.Once());
             }
@@ -94,7 +94,7 @@ namespace Dequeueable.IntegrationTests.Functions
 
             // Act
             var host = factory.Build();
-            await host.HandleAsync(CancellationToken.None);
+            await host.ExecuteAsync(CancellationToken.None);
 
             // Assert
             var peekedMessage = await _queueClient.PeekMessageAsync();
@@ -129,7 +129,7 @@ namespace Dequeueable.IntegrationTests.Functions
 
             // Act
             var host = factory.Build();
-            await host.HandleAsync(CancellationToken.None);
+            await host.ExecuteAsync(CancellationToken.None);
 
             // Assert
             var peekedMessage = await _queueClient.PeekMessageAsync();

@@ -5,12 +5,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Dequeueable.Services.Hosts;
 
-namespace Dequeueable.Extentions
+namespace Dequeueable.Extensions
 {
     /// <summary>
     /// Extension methods for adding configuration related of the Queue services to the DI container via <see cref="IServiceCollection"/>.
     /// </summary>
-    public static class ServiceCollectionExtentions
+    public static class ServiceCollectionExtensions
     {
         /// <summary>
         /// Adds the Azure Queue services and the job of the type specified in <typeparamref name="TJob"/> to the
@@ -32,8 +32,7 @@ namespace Dequeueable.Extentions
                 services.Configure(options);
             }
 
-            services.AddHostedService<JobHost>();
-            services.AddSingleton<IHostExecutor, JobExecutor>();
+            services.AddSingleton<IJobExecutor, JobExecutor>();
             services.AddSingleton<IQueueMessageManager, QueueMessageManager>();
             services.AddTransient<IQueueMessageHandler, QueueMessageHandler>();
             services.AddTransient<IQueueMessageExecutor, QueueMessageExecutor>();
@@ -42,7 +41,7 @@ namespace Dequeueable.Extentions
             services.TryAddTransient<IQueueClientProvider, QueueClientProvider>();
             services.TryAddSingleton(TimeProvider.System);
 
-            return new HostBuilder(services);
+            return new DequeueableHostBuilder(services);
         }
     }
 }

@@ -1,11 +1,11 @@
 ﻿using Dequeueable.Models;
 using Dequeueable.Services.Hosts;
 using Dequeueable.Services.Queues;
-using Dequeueable.Extentions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Dequeueable.Services.DistributedLock;
+using Dequeueable.Extensions;
 
 namespace Dequeueable.UnitTests.Configurations
 {
@@ -38,7 +38,7 @@ namespace Dequeueable.UnitTests.Configurations
             var host = hostBuilder.Build();
 
             // Assert
-            host.Services.GetRequiredService<IHostedService>().Should().BeOfType<JobHost>();
+            host.Services.GetRequiredService<IJobExecutor>().Should().BeOfType<JobExecutor>();
         }
 
         [Fact]

@@ -3,7 +3,7 @@
     /// <summary>
     /// Inteface that will be called when the host is started. This interface can be used for integration testing.
     /// </summary>
-    public interface IHostExecutor
+    public interface IJobExecutor
     {
         /// <summary>
         /// The method that will be called when the host is started.
@@ -12,6 +12,6 @@
         /// <see cref="CancellationToken"/> to propagate
         /// notifications that the operation should be cancelled.
         /// </param>
-        Task HandleAsync(CancellationToken cancellationToken);
+        Task ExecuteAsync(CancellationToken cancellationToken);
     }
 }

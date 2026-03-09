@@ -53,11 +53,6 @@ namespace Dequeueable.Configurations
         /// </summary>
         public QueueClientOptions? QueueClientOptions { get; set; } = new QueueClientOptions { MessageEncoding = QueueMessageEncoding.Base64 };
 
-        /// <summary>
-        /// The maximum number of messages processed in parallel.
-        /// </summary>
-        [Range(1, 100, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
-        public int BatchSize { get; set; } = 16;
 
         /// <summary>
         /// Max dequeue count before moving to the poison queue. 

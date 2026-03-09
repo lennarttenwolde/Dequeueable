@@ -13,18 +13,18 @@ namespace Dequeueable.Services.Queues
         private readonly QueueClient _queueClient = queueClientProvider.GetQueue();
         private readonly QueueClient _poisonQueueClient = queueClientProvider.GetPoisonQueue();
 
-        public async Task<IEnumerable<Message>> RetrieveMessagesAsync(CancellationToken cancellationToken)
+        public async Task<Message?> RetrieveMessageAsync(CancellationToken cancellationToken)
         {
             try
             {
-                var response = await _queueClient.ReceiveMessagesAsync(maxMessages: _options.BatchSize, visibilityTimeout: TimeSpan.FromSeconds(_options.VisibilityTimeoutInSeconds), cancellationToken);
-                return response.Value.Select(m => new Message(m.MessageId, m.PopReceipt, m.DequeueCount, m.NextVisibleOn, m.Body));
+                var response = await _queueClient.ReceiveMessagesAsync(maxMessages: 1, visibilityTimeout: TimeSpan.FromSeconds(_options.VisibilityTimeoutInSeconds), cancellationToken);
+                return response.Value.Select(m => new Message(m.MessageId, m.PopReceipt, m.DequeueCount, m.NextVisibleOn, m.Body)).FirstOrDefault();
             }
             catch (RequestFailedException exception) when (exception.Status == 404)
             {
                 await CreateQueue(_queueClient, cancellationToken);
-                var response = await _queueClient.ReceiveMessagesAsync(maxMessages: _options.BatchSize, visibilityTimeout: TimeSpan.FromSeconds(_options.VisibilityTimeoutInSeconds), cancellationToken);
-                return response.Value.Select(m => new Message(m.MessageId, m.PopReceipt, m.DequeueCount, m.NextVisibleOn, m.Body));
+                var response = await _queueClient.ReceiveMessagesAsync(maxMessages: 1, visibilityTimeout: TimeSpan.FromSeconds(_options.VisibilityTimeoutInSeconds), cancellationToken);
+                return response.Value.Select(m => new Message(m.MessageId, m.PopReceipt, m.DequeueCount, m.NextVisibleOn, m.Body)).FirstOrDefault();
             }
         }
 

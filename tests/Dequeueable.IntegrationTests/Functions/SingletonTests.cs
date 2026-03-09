@@ -34,7 +34,7 @@ namespace Dequeueable.IntegrationTests.Functions
         }
 
         [Fact]
-        public async Task Given_a_JobFunction_with_a_singleton_attribute_when_a_queue_has_two_messages_then_they_are_handled_correctly()
+        public async Task Given_two_JobInstances_run_as_distributed_lock_when_a_queue_has_two_messages_then_only_one_is_handled_correctly()
         {
             // Arrange
             var scope = "Id";
@@ -67,7 +67,10 @@ namespace Dequeueable.IntegrationTests.Functions
 
             // Act
             var host = factory.Build();
-            await host.HandleAsync(CancellationToken.None);
+
+            await Task.WhenAll(
+                host.ExecuteAsync(CancellationToken.None),
+                host.ExecuteAsync(CancellationToken.None));
 
             // Assert
             fakeServiceMock.Verify(f => f.Execute(It.IsAny<Message>()), Times.Exactly(messages.Length));

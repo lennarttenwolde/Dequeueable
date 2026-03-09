@@ -11,14 +11,14 @@ namespace Dequeueable.UnitTests.Services.Hosts
     {
 
         [Fact]
-        public async Task Given_a_JobExecutor_when_HandleAsync_is_called_but_no_messages_are_retrieved_then_the_handler_is_not_called()
+        public async Task Given_a_JobExecutor_when_ExecuteAsync_is_called_but_no_messages_are_retrieved_then_the_handler_is_not_called()
         {
             // Arrange
             var queueMessageManagerMock = new Mock<IQueueMessageManager>(MockBehavior.Strict);
             var queueMessageHandlerMock = new Mock<IQueueMessageHandler>(MockBehavior.Strict);
             var loggerMock = new Mock<ILogger<JobExecutor>>(MockBehavior.Strict);
 
-            queueMessageManagerMock.Setup(m => m.RetrieveMessagesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(Array.Empty<Message>());
+            queueMessageManagerMock.Setup(m => m.RetrieveMessageAsync(It.IsAny<CancellationToken>())).ReturnsAsync((Message?)null);
 
             loggerMock.Setup(
                 x => x.Log(
@@ -31,31 +31,31 @@ namespace Dequeueable.UnitTests.Services.Hosts
             var sut = new JobExecutor(queueMessageManagerMock.Object, queueMessageHandlerMock.Object, loggerMock.Object);
 
             // Act
-            await sut.HandleAsync(CancellationToken.None);
+            await sut.ExecuteAsync(CancellationToken.None);
 
             // Assert
             queueMessageHandlerMock.VerifyNoOtherCalls();
         }
 
         [Fact]
-        public async Task Given_a_JobExecutor_when_HandleAsync_is_called_and_messages_are_retrieved_then_the_handler_is_called_correctly()
+        public async Task Given_a_JobExecutor_when_ExecuteAsync_is_called_and_messages_are_retrieved_then_the_handler_is_called_correctly()
         {
             // Arrange
-            var messages = new[] { new MessageTestDataBuilder().WithmessageId("1").Build(), new MessageTestDataBuilder().WithmessageId("2").Build() };
+            var message = new MessageTestDataBuilder().WithmessageId("1").Build();
             var queueMessageManagerMock = new Mock<IQueueMessageManager>(MockBehavior.Strict);
             var queueMessageHandlerMock = new Mock<IQueueMessageHandler>(MockBehavior.Strict);
             var loggerMock = new Mock<ILogger<JobExecutor>>(MockBehavior.Strict);
 
-            queueMessageManagerMock.Setup(m => m.RetrieveMessagesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(messages);
-            queueMessageHandlerMock.Setup(h => h.HandleAsync(It.Is<Message>(m => messages.Any(ma => ma.MessageId == m.MessageId)), CancellationToken.None)).Returns(Task.CompletedTask);
+            queueMessageManagerMock.Setup(m => m.RetrieveMessageAsync(It.IsAny<CancellationToken>())).ReturnsAsync(message);
+            queueMessageHandlerMock.Setup(h => h.HandleAsync(It.Is<Message>(m => m.MessageId == message.MessageId), CancellationToken.None)).Returns(Task.CompletedTask);
 
             var sut = new JobExecutor(queueMessageManagerMock.Object, queueMessageHandlerMock.Object, loggerMock.Object);
 
             // Act
-            await sut.HandleAsync(CancellationToken.None);
+            await sut.ExecuteAsync(CancellationToken.None);
 
             // Assert
-            queueMessageHandlerMock.Verify(e => e.HandleAsync(It.Is<Message>(m => messages.Any(ma => ma.MessageId == m.MessageId)), It.IsAny<CancellationToken>()), Times.Exactly(messages.Length));
+            queueMessageHandlerMock.Verify(e => e.HandleAsync(It.Is<Message>(m => m.MessageId == message.MessageId), It.IsAny<CancellationToken>()), Times.Exactly(1));
         }
     }
 }

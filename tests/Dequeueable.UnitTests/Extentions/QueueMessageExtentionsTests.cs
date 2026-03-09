@@ -1,4 +1,4 @@
-﻿using Dequeueable.Extentions;
+﻿using Dequeueable.Extensions;
 using Dequeueable.UnitTests.TestDataBuilders;
 using FluentAssertions;
 using System.Text.Json;

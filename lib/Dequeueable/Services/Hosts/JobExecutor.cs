@@ -7,35 +7,30 @@ namespace Dequeueable.Services.Hosts
     internal sealed class JobExecutor(
         IQueueMessageManager messagesManager,
         IQueueMessageHandler queueMessageHandler,
-        ILogger<JobExecutor> logger) : IHostExecutor
+        ILogger<JobExecutor> logger) : IJobExecutor
     {
-        private readonly List<Task> _processing = [];
-
-        public async Task HandleAsync(CancellationToken cancellationToken)
+        public async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            var messages = (await messagesManager.RetrieveMessagesAsync(cancellationToken)).ToArray();
-            var messagesFound = messages.Length > 0;
-            if (messagesFound)
+            try
             {
-                await HandleMessages(messages!, cancellationToken);
-            }
-            else
-            {
-                logger.LogDebug("No messages found");
-            }
 
-            return;
-        }
+                var message = await messagesManager.RetrieveMessageAsync(cancellationToken);
 
-        private Task HandleMessages(Message[] messages, CancellationToken cancellationToken)
-        {
-            foreach (var message in messages)
+                if (message is not null)
+                {
+                    await queueMessageHandler.HandleAsync(message, cancellationToken);
+                }
+                else
+                {
+                    logger.LogDebug("No messages found");
+                }
+            }
+            catch (Exception ex) when (ex is not TaskCanceledException)
             {
-                var task = queueMessageHandler.HandleAsync(message, cancellationToken);
-                _processing.Add(task);
+                logger.LogError(ex, "Unhandled exception occurred, unable to process the message.");
+                throw;
             }
 
-            return Task.WhenAll(_processing);
         }
     }
 }

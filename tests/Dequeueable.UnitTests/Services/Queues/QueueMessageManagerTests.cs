@@ -13,7 +13,7 @@ namespace Dequeueable.UnitTests.Services.Queues
     public class QueueMessageManagerTests
     {
         [Fact]
-        public async Task Given_a_QueueMessageManager_when_RetrieveMessagesAsync_is_called_then_messages_are_retrieved_correctly()
+        public async Task Given_a_QueueMessageManager_when_RetrieveMessageAsync_is_called_then_message_is_retrieved_correctly()
         {
             // Arrange
             var options = new HostOptions();
@@ -23,21 +23,21 @@ namespace Dequeueable.UnitTests.Services.Queues
 
             var responseFake = new Mock<Response<QueueMessage[]>>();
             responseFake.SetupGet(r => r.Value).Returns(queueMessages);
-            queueClientFake.Setup(c => c.ReceiveMessagesAsync(options.BatchSize, TimeSpan.FromSeconds(options.VisibilityTimeoutInSeconds), It.IsAny<CancellationToken>())).ReturnsAsync(responseFake.Object);
+            queueClientFake.Setup(c => c.ReceiveMessagesAsync(1, TimeSpan.FromSeconds(options.VisibilityTimeoutInSeconds), It.IsAny<CancellationToken>())).ReturnsAsync(responseFake.Object);
             queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
             queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(queueClientFake.Object);
 
             var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
 
             // Act
-            var messages = await sut.RetrieveMessagesAsync(CancellationToken.None);
+            var message = await sut.RetrieveMessageAsync(CancellationToken.None);
 
             // Assert
-            messages.Should().HaveSameCount(queueMessages);
+            message.Should().NotBeNull();
         }
 
         [Fact]
-        public async Task Given_a_QueueMessageManager_when_RetrieveMessagesAsync_is_called_and_a_404_exception_occurred_then_the_queue_is_created_and_the_messages_are_retrieved_correctly()
+        public async Task Given_a_QueueMessageManager_when_RetrieveMessageAsync_is_called_and_a_404_exception_occurred_then_the_queue_is_created_and_the_message_is_null()
         {
             // Arrange
             var options = new HostOptions();
@@ -49,7 +49,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             succeededResponseFake.SetupGet(r => r.Value).Returns(queueMessages);
 
             var requestFailedException = new RequestFailedException(404, "");
-            queueClientFake.SetupSequence(c => c.ReceiveMessagesAsync(options.BatchSize, TimeSpan.FromSeconds(options.VisibilityTimeoutInSeconds), It.IsAny<CancellationToken>()))
+            queueClientFake.SetupSequence(c => c.ReceiveMessagesAsync(1, TimeSpan.FromSeconds(options.VisibilityTimeoutInSeconds), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(requestFailedException)
                 .ReturnsAsync(succeededResponseFake.Object);
 
@@ -60,14 +60,14 @@ namespace Dequeueable.UnitTests.Services.Queues
             var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
 
             // Act
-            var messages = await sut.RetrieveMessagesAsync(CancellationToken.None);
+            var message = await sut.RetrieveMessageAsync(CancellationToken.None);
 
             // Assert
-            messages.Should().HaveSameCount(queueMessages);
+            message.Should().BeNull();
         }
 
         [Fact]
-        public async Task Given_a_QueueMessageManager_when_RetrieveMessagesAsync_is_called_and_a_404_exception_occurred_and_an_exception_occurred_when_creating_the_queue_then_an_exception_is_thrown()
+        public async Task Given_a_QueueMessageManager_when_RetrieveMessageAsync_is_called_and_a_404_exception_occurred_and_an_exception_occurred_when_creating_the_queue_then_an_exception_is_thrown()
         {
             // Arrange
             var options = new HostOptions();
@@ -79,7 +79,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             succeededresponseFake.SetupGet(r => r.Value).Returns(queueMessages);
 
             var requestFailedException = new RequestFailedException(404, "");
-            queueClientFake.Setup(c => c.ReceiveMessagesAsync(options.BatchSize, TimeSpan.FromSeconds(options.VisibilityTimeoutInSeconds), It.IsAny<CancellationToken>()))
+            queueClientFake.Setup(c => c.ReceiveMessagesAsync(1, TimeSpan.FromSeconds(options.VisibilityTimeoutInSeconds), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(requestFailedException);
 
             queueClientFake.Setup(c => c.CreateAsync(It.IsAny<IDictionary<string, string>>(), It.IsAny<CancellationToken>())).ThrowsAsync(new RequestFailedException(409, "some conflict"));
@@ -89,7 +89,7 @@ namespace Dequeueable.UnitTests.Services.Queues
             var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
 
             // Act
-            Func<Task> act = () => sut.RetrieveMessagesAsync(CancellationToken.None);
+            Func<Task> act = () => sut.RetrieveMessageAsync(CancellationToken.None);
 
             // Assert
             await act.Should().ThrowAsync<RequestFailedException>();

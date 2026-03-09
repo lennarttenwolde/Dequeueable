@@ -39,54 +39,6 @@ namespace Dequeueable.UnitTests.Configurations
         }
 
         [Fact]
-        public void Given_a_HostOptions_when_BatchSize_is_within_range_then_the_validation_result_are_empty()
-        {
-            // Arrange
-            var sut = new HostOptions
-            {
-                BatchSize = 5
-            };
-
-            // Act
-            var result = ValidateModel(sut);
-
-            // Assert
-            result.Should().NotContain(e => e.MemberNames!.Contains("BatchSize"));
-        }
-
-        [Fact]
-        public void Given_a_HostOptions_when_BatchSize_is_zero_then_the_validation_result_contains_the_correct_error_message()
-        {
-            // Arrange
-            var sut = new HostOptions
-            {
-                BatchSize = 0
-            };
-
-            // Act
-            var result = ValidateModel(sut);
-
-            // Assert
-            result.Should().Contain(e => e.ErrorMessage!.Contains("Value for BatchSize must be between 1 and 100."));
-        }
-
-        [Fact]
-        public void Given_a_HostOptions_when_BatchSize_is_101_then_the_validation_result_contains_the_correct_error_message()
-        {
-            // Arrange
-            var sut = new HostOptions
-            {
-                BatchSize = 101
-            };
-
-            // Act
-            var result = ValidateModel(sut);
-
-            // Assert
-            result.Should().Contain(e => e.ErrorMessage!.Contains("Value for BatchSize must be between 1 and 100."));
-        }
-
-        [Fact]
         public void Given_a_HostOptions_when_MaxDequeueCount_is_within_range_then_the_validation_result_are_empty()
         {
             // Arrange

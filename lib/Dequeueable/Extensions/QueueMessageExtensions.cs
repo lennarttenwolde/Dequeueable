@@ -1,9 +1,9 @@
 ﻿using Dequeueable.Models;
 using System.Text.Json;
 
-namespace Dequeueable.Extentions
+namespace Dequeueable.Extensions
 {
-    internal static class QueueMessageExtentions
+    internal static class QueueMessageExtensions
     {
         public static string GetValueByPropertyName(this Message queueMessage, string propertyName)
         {

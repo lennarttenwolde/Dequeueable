@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 
 namespace Dequeueable.Configurations
 {
-    internal class HostBuilder(IServiceCollection services) : IDequeueableHostBuilder
+    internal class DequeueableHostBuilder(IServiceCollection services) : IDequeueableHostBuilder
     {
         public IDequeueableHostBuilder WithDistributedLock(Action<DistributedLockOptions>? options = null)
         {

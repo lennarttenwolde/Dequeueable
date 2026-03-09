@@ -1,5 +1,5 @@
 ﻿using Dequeueable.Configurations;
-using Dequeueable.Extentions;
+using Dequeueable.Extensions;
 using Dequeueable.Models;
 using Dequeueable.Services.Queues;
 using Dequeueable.Services.Timers;

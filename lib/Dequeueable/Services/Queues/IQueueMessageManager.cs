@@ -7,7 +7,7 @@ namespace Dequeueable.Services.Queues
         Task DeleteMessageAsync(Message queueMessage, CancellationToken cancellationToken);
         Task EnqueueMessageAsync(Message queueMessage, CancellationToken cancellationToken);
         Task MoveToPoisonQueueAsync(Message queueMessage, CancellationToken cancellationToken);
-        Task<IEnumerable<Message>> RetrieveMessagesAsync(CancellationToken cancellationToken);
+        Task<Message?> RetrieveMessageAsync(CancellationToken cancellationToken);
         Task<DateTimeOffset> UpdateVisibilityTimeOutAsync(Message queueMessage, CancellationToken cancellationToken);
     }
 }
