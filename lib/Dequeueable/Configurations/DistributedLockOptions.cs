@@ -7,7 +7,7 @@ namespace Dequeueable.Configurations
     /// </summary>
     public class DistributedLockOptions
     {
-        internal static string Name => $"{HostOptions.Dequeueable}:Singleton";
+        internal static string Name => $"{HostOptions.Dequeueable}:DistributedLock";
 
         /// <summary>
         /// Gets the scope indentifier of the lock. This will be the blob file name to implement the lock.

@@ -11,22 +11,19 @@ It functions as an **Ephemeral Job Runner**. The host is triggered by external q
 
 Scaffold a new project, you can either use a console or web app.
 
-1. Add a class that implements the `IAzureQueueFunction`.
-2. Add `.AddAzureQueueStorageServices<TestFunction>` in the DI container.
-3. Add the specialized Job Runner:
-   - Add `RunAsJob` in the DI container of your app to run the host as a job.
+1. Add a class that implements the `IQueueJob`.
+2. Add `.AddDequeueable<YourJob>` in the DI container.
+3. Add `RunJobAsync` in the DI container of your app to run the host as a job.
 
 ```csharp
 await Host.CreateDefaultBuilder(args)
-    .ConfigureServices((context, services) =>
+.ConfigureServices(services =>
+{
+    services.AddDequeueable<TestJob>(options =>
     {
-        services.AddAzureQueueStorageServices<TestFunction>()
-        .RunAsJob(options =>
-        {
-            // ...
-        });
-     })
-    .RunConsoleAsync();
+       // ...
+    });
+}).RunJobAsync();
 ```
 
 ### Configurations
@@ -50,15 +47,14 @@ Use the `Dequeueable` section to configure the settings:
 await Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
-        services.AddAzureQueueStorageServices<TestFunction>()
-        .RunAsJob(options =>
+        services.AddDequeueable<TestJob>(options =>
         {
             options.AuthenticationScheme = new DefaultAzureCredential();
             options.VisibilityTimeout = TimeSpan.FromMinutes(10);
             options.QueueName = "testqueue";
         });
     })
-    .RunConsoleAsync();
+    .RunJobAsync();
 ```
 
 ### Settings
@@ -77,7 +73,6 @@ These options can be set for he job project:
 | AccountName                | The storage account name, used for identity flow.                                                                                                      |                                                                            | Only when using Identity           |
 | QueueUriFormat             | The uri format to the queue storage. Used for identity flow. Use ` {accountName}` and `{queueName}` for variable substitution.                         | https://{accountName}.queue.core.windows.net/{queueName}                   | No                                 |
 | AuthenticationScheme       | Token credential used to authenticate via AD, Any token credential provider can be used that inherits the abstract class `Azure.Core.TokenCredential`. |                                                                            | Yes, if you want to use Identity   |
-| BatchSize                  | The maximum number of messages processed in parallel.                                                                                                  | 16                                                                         | No                                 |
 | MaxDequeueCount            | Max dequeue count before moving to the poison queue.                                                                                                   | 5                                                                          | No                                 |
 | VisibilityTimeoutInSeconds | The timeout after the queue message is visible again for other services.                                                                               | 300                                                                        | No                                 |
 | QueueClientOptions         | Provides the client configuration options for connecting to Azure Queue Storage.                                                                       | `new QueueClientOptions { MessageEncoding = QueueMessageEncoding.Base64 }` | No                                 |
@@ -96,8 +91,7 @@ You can authenticate to the storage account & queue by setting the ConnectionStr
 ```
 
 ```csharp
-    services.AddAzureQueueStorageServices<TestFunction>()
-    .RunAsJob(options =>
+    services.AddDequeueable<TestJob>(options =>
     {
         // ...
         options.ConnectionString = "UseDevelopmentStorage=true";
@@ -114,8 +108,7 @@ Authenticating via Azure Identity is also possible and the recommended option. M
 Set the `AuthenticationScheme` and the `AccountName` options to authenticate via azure AD:
 
 ```csharp
-    services.AddAzureQueueStorageServices<TestFunction>()
-    .RunAsJob(options =>
+    services.AddDequeueable<TestJob>(options =>
     {
         options.AuthenticationScheme = new DefaultAzureCredential();
         options.AccountName = "thestorageaccountName";
@@ -145,20 +138,19 @@ internal class MyCustomQueueProvider : IQueueClientProvider
     }
 ```
 
-## Singleton
+## Distributed Lock
 
-A singleton can be applied the job to ensure that only a single instance of the job is executed at any given time. It uses the blob lease and therefore **distributed** lock is guaranteed. The blob is always leased for 60 seconds. The lease will be released if no longer required. It will be automatically renewed if executing the message(s) takes longer.
+A distributed lock can be applied the job to ensure that only a single instance of the job is executed at any given time. It uses the blob lease and therefore **distributed** lock is guaranteed. The blob is always leased for 60 seconds. The lease will be released if no longer required. It will be automatically renewed if executing the message(s) takes longer.
 
 NOTE: The blob files will not be automatically deleted. If needed, consider specifying data lifecycle rules for the blob container: https://learn.microsoft.com/en-us/azure/storage/blobs/lifecycle-management-overview
 
 > If making use of the **Identity Flow**, the lease requires the **Storage Blob Data Contributor** role because the library writes and manages the lease blob for distributed locking.
 
-To run the host as singleton, call the `.AsSingleton()` in the DI container:
+To run the host with a distributed lock, call the `.WithDistributedLock()` in the DI container:
 
 ```csharp
-services.AddAzureQueueStorageServices<TestFunction>()
-    .RunAsJob()
-    .AsSingleton(opt =>
+services.services.AddDequeueable<TestJob>()
+.WithDistributedLock(opt =>
     {
         opt.Scope = "id";
     });
@@ -192,14 +184,14 @@ Nested properties are also supported. Given a queue message with the following b
 
 When the scope is set to `"My:Nested:Property"` on the function. Only a single message containing `500` will be executed at an given time.
 
-### Singleton Options
+### Lock Options
 
-You can specify the following singleton options via the singleton function `.AsSingleton(opt => {})` or via the `appsettings.json` using the Dequeueable:Singleton section:
+You can specify the following lock options via the `.WithDistributedLock(opt => {})` or via the `appsettings.json` using the Dequeueable:DistributedLock section:
 
 ```json
 {
   "Dequeueable": {
-    "Singleton": {
+    "DistributedLock": {
       "Scope": "id"
     }
   }

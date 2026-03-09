@@ -9,9 +9,9 @@ namespace Dequeueable.SampleJob.Jobs
         {
             for (var i = 0; i < 6; i++)
             {
-#pragma warning disable CA1873 // Avoid potentially expensive logging
-                logger.LogInformation("Executing job loop {I}", i);
-#pragma warning restore CA1873 // Avoid potentially expensive logging
+
+                logger.ExecutingJobLoop(i);
+
                 if (cancellationToken.IsCancellationRequested)
                 {
                     logger.LogInformation("Job cancelled!");
@@ -20,5 +20,11 @@ namespace Dequeueable.SampleJob.Jobs
                 await Task.Delay(10000, cancellationToken);
             }
         }
+    }
+
+    internal static partial class Logs
+    {
+        [LoggerMessage(Level = LogLevel.Information, Message = "Executing job loop {I}")]
+        internal static partial void ExecutingJobLoop(this ILogger<TestJob> logger, int i);
     }
 }
