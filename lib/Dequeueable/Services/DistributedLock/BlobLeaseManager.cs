@@ -6,11 +6,11 @@ using Dequeueable.Configurations;
 using Microsoft.Extensions.Logging;
 using System.Text;
 
-namespace Dequeueable.Services.Singleton
+namespace Dequeueable.Services.DistributedLock
 {
-    internal sealed class DistributedLockManager(BlobClient blobClient, SingletonHostOptions singletonHostOptions, ILogger logger) : IDistributedLockManager
+    internal sealed class BlobLeaseManager(BlobClient blobClient, DistributedLockOptions distributedLockOptions, ILogger logger) : IBlobLeaseManager
     {
-        private TimeSpan LeaseDuration => TimeSpan.FromSeconds(singletonHostOptions.LeaseDurationInSeconds);
+        private TimeSpan LeaseDuration => TimeSpan.FromSeconds(distributedLockOptions.LeaseDurationInSeconds);
 
         public async Task<string?> AcquireAsync(CancellationToken cancellationToken)
         {
@@ -38,7 +38,7 @@ namespace Dequeueable.Services.Singleton
 
                 if (blobProperties?.LeaseState is not LeaseState.Leased)
                 {
-                    throw new SingletonException($"Unable to renew the lock for {blobClient.Name} because the lease is not active anymore");
+                    throw new DistributedLockException($"Unable to renew the lock for {blobClient.Name} because the lease is not active anymore");
                 }
 
                 return await TryRenewAsync(leaseId, blobClient);

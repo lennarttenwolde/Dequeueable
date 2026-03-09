@@ -5,8 +5,7 @@ using Dequeueable.SampleJob.Jobs;
 await Host.CreateDefaultBuilder(args)
 .ConfigureServices(services =>
 {
-    services.AddAzureQueueStorageServices<TestJob>()
-    .RunAsJob(options =>
+    services.AddDequeueable<TestJob>(options =>
     {
         //// Uncomment for identity flow
         //options.AuthenticationScheme = new DefaultAzureCredential();

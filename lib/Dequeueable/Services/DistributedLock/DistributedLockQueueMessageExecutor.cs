@@ -5,14 +5,14 @@ using Dequeueable.Services.Queues;
 using Dequeueable.Services.Timers;
 using Microsoft.Extensions.Options;
 
-namespace Dequeueable.Services.Singleton
+namespace Dequeueable.Services.DistributedLock
 {
-    internal sealed class SingletonQueueMessageExecutor(ISingletonLockManager singletonLockManager,
+    internal sealed class DistributedLockQueueMessageExecutor(IDistributedLockManager distributedLockManager,
         IQueueMessageExecutor queueMessageExecutor,
         TimeProvider timeProvider,
-        IOptions<SingletonHostOptions> singletonHostOptions) : IQueueMessageExecutor
+        IOptions<DistributedLockOptions> distributedLockOptions) : IQueueMessageExecutor
     {
-        private readonly SingletonHostOptions _options = singletonHostOptions.Value;
+        private readonly DistributedLockOptions _options = distributedLockOptions.Value;
 
         public async Task ExecuteAsync(Message message, CancellationToken cancellationToken)
         {
@@ -39,7 +39,7 @@ namespace Dequeueable.Services.Singleton
             try
             {
                 lockName = GetLockName(message);
-                leaseId = await singletonLockManager.AquireLockAsync(lockName, cancellationToken);
+                leaseId = await distributedLockManager.AquireLockAsync(lockName, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -50,11 +50,11 @@ namespace Dequeueable.Services.Singleton
             try
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                await using var timer = new LeaseTimeoutTimer(singletonLockManager, timeProvider, new LinearDelayStrategy(TimeSpan.FromSeconds(_options.MinimumPollingIntervalInSeconds)));
+                await using var timer = new LeaseTimeoutTimer(distributedLockManager, timeProvider, new LinearDelayStrategy(TimeSpan.FromSeconds(_options.MinimumPollingIntervalInSeconds)));
 
                 timer.Start(leaseId, lockName, onFaultedAction: () =>
                 {
-                    taskCompletionSource.TrySetException(new SingletonException($"Unable to renew the lease with id '{leaseId}'. Distributed lock cannot be guaranteed."));
+                    taskCompletionSource.TrySetException(new DistributedLockException($"Unable to renew the lease with id '{leaseId}'. Distributed lock cannot be guaranteed."));
                     cts.Cancel();
                 });
 
@@ -67,7 +67,7 @@ namespace Dequeueable.Services.Singleton
             }
             finally
             {
-                await singletonLockManager.ReleaseLockAsync(leaseId, lockName, cancellationToken);
+                await distributedLockManager.ReleaseLockAsync(leaseId, lockName, cancellationToken);
             }
         }
 
@@ -78,16 +78,16 @@ namespace Dequeueable.Services.Singleton
                 var lockName = message.GetValueByPropertyName(_options.Scope);
 
                 return string.IsNullOrWhiteSpace(lockName)
-                    ? throw new SingletonException($"The provided scope name, '{_options.Scope}' , does not exist on the message with id '{message.MessageId}'")
+                    ? throw new DistributedLockException($"The provided scope name, '{_options.Scope}' , does not exist on the message with id '{message.MessageId}'")
                     : lockName;
             }
             catch (KeyNotFoundException ex)
             {
-                throw new SingletonException($"The provided scope name, '{_options.Scope}' , does not exist on the message with id '{message.MessageId}'", ex);
+                throw new DistributedLockException($"The provided scope name, '{_options.Scope}' , does not exist on the message with id '{message.MessageId}'", ex);
             }
             catch (System.Text.Json.JsonException ex)
             {
-                throw new SingletonException($"Unable to parse the body for the message with id '{message.MessageId}'", ex);
+                throw new DistributedLockException($"Unable to parse the body for the message with id '{message.MessageId}'", ex);
             }
         }
     }

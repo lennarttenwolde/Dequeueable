@@ -11,9 +11,9 @@ namespace Dequeueable.IntegrationTests
         where TFunction : class, IQueueJob
     {
         private readonly IHostBuilder _hostBuilder;
-        private readonly Action<Dequeueable.Configurations.HostOptions>? _options;
+        private readonly Action<Configurations.HostOptions>? _options;
 
-        public JobHostFactory(Action<Dequeueable.Configurations.HostOptions>? overrideOptions = null, Action<Configurations.SingletonHostOptions>? singletonHostOptions = null)
+        public JobHostFactory(Action<Configurations.HostOptions>? overrideOptions = null, Action<Configurations.DistributedLockOptions>? distributedLockOptions = null)
         {
             if (overrideOptions is not null)
             {
@@ -23,12 +23,11 @@ namespace Dequeueable.IntegrationTests
             _hostBuilder = Host.CreateDefaultBuilder()
                 .ConfigureServices(services =>
                 {
-                    var hostBuilder = services.AddAzureQueueStorageServices<TestFunction>()
-                    .RunAsJob(_options);
+                    var hostBuilder = services.AddDequeueable<TestFunction>(_options);
 
-                    if (singletonHostOptions is not null)
+                    if (distributedLockOptions is not null)
                     {
-                        hostBuilder.AsSingleton(singletonHostOptions);
+                        hostBuilder.WithDistributedLock(distributedLockOptions);
                     }
 
                     services.AddTransient<IFakeService, FakeService>();

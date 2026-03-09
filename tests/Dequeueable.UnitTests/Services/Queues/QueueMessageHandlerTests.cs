@@ -2,6 +2,7 @@
 using Dequeueable.Services.Queues;
 using Dequeueable.UnitTests.TestDataBuilders;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Dequeueable.UnitTests.Services.Queues
@@ -30,7 +31,7 @@ namespace Dequeueable.UnitTests.Services.Queues
                 null,
                 It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)));
 
-            var sut = new QueueMessageHandler(queueMessageExecutorMock.Object, queueMessageManagerMock.Object, timeProvider, loggerMock.Object, options);
+            var sut = new QueueMessageHandler(queueMessageExecutorMock.Object, queueMessageManagerMock.Object, timeProvider, loggerMock.Object, Options.Create(options));
 
             // Act
             await sut.HandleAsync(message, CancellationToken.None);
@@ -63,7 +64,7 @@ namespace Dequeueable.UnitTests.Services.Queues
                 It.IsAny<Exception>(),
                 It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)));
 
-            var sut = new QueueMessageHandler(queueMessageExecutorMock.Object, queueMessageManagerMock.Object, timeProvider, loggerMock.Object, options);
+            var sut = new QueueMessageHandler(queueMessageExecutorMock.Object, queueMessageManagerMock.Object, timeProvider, loggerMock.Object, Options.Create(options));
 
             // Act
             await sut.HandleAsync(message, CancellationToken.None);
@@ -96,7 +97,7 @@ namespace Dequeueable.UnitTests.Services.Queues
                 It.IsAny<Exception>(),
                 It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)));
 
-            var sut = new QueueMessageHandler(queueMessageExecutorMock.Object, queueMessageManagerMock.Object, timeProvider, loggerMock.Object, options);
+            var sut = new QueueMessageHandler(queueMessageExecutorMock.Object, queueMessageManagerMock.Object, timeProvider, loggerMock.Object, Options.Create(options));
 
             // Act
             await sut.HandleAsync(message, CancellationToken.None);
@@ -130,7 +131,7 @@ namespace Dequeueable.UnitTests.Services.Queues
                 It.IsAny<VisibilityTimeoutException>(),
                 It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)));
 
-            var sut = new QueueMessageHandler(queueMessageExecutorMock.Object, queueMessageManagerMock.Object, timeProvider, loggerMock.Object, options)
+            var sut = new QueueMessageHandler(queueMessageExecutorMock.Object, queueMessageManagerMock.Object, timeProvider, loggerMock.Object, Options.Create(options))
             {
                 MinimalVisibilityTimeoutDelay = TimeSpan.Zero
             };

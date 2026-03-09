@@ -2,6 +2,7 @@
 using Dequeueable.Models;
 using Dequeueable.Services.Timers;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Dequeueable.Services.Queues
 {
@@ -9,8 +10,9 @@ namespace Dequeueable.Services.Queues
         IQueueMessageManager queueMessageManager,
         TimeProvider timeProvider,
         ILogger<QueueMessageHandler> logger,
-        HostOptions options) : IQueueMessageHandler
+        IOptions<HostOptions> options) : IQueueMessageHandler
     {
+        private readonly HostOptions _options = options.Value;
         internal TimeSpan MinimalVisibilityTimeoutDelay { get; set; } = TimeSpan.FromSeconds(15);
 
         public async Task HandleAsync(Message message, CancellationToken cancellationToken)
@@ -60,7 +62,7 @@ namespace Dequeueable.Services.Queues
 
         private Task HandleException(Message message, CancellationToken cancellationToken)
         {
-            return message.DequeueCount >= options.MaxDequeueCount
+            return message.DequeueCount >= _options.MaxDequeueCount
                 ? queueMessageManager.MoveToPoisonQueueAsync(message, cancellationToken)
                 : queueMessageManager.EnqueueMessageAsync(message, cancellationToken);
         }

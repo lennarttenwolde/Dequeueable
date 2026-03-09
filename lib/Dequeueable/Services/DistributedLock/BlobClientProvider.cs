@@ -4,17 +4,17 @@ using Dequeueable.Factories;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Dequeueable.Services.Singleton
+namespace Dequeueable.Services.DistributedLock
 {
     internal sealed class BlobClientProvider(
     IBlobClientFactory factory,
     IOptions<HostOptions> hostOptions,
-    IOptions<SingletonHostOptions> singletonHostOptions,
+    IOptions<DistributedLockOptions> distributedLockOptions,
     ILogger<BlobClientProvider> logger) : IBlobClientProvider
     {
 
         private readonly HostOptions _hostOptions = hostOptions.Value;
-        private readonly SingletonHostOptions _singletonHostOptions = singletonHostOptions.Value;
+        private readonly DistributedLockOptions _distributedLockOptions = distributedLockOptions.Value;
 
 
         public BlobClient GetClient(string fileName)
@@ -23,7 +23,7 @@ namespace Dequeueable.Services.Singleton
             {
                 logger.LogDebug("Authenticate the BlobClient through Active Directory");
 
-                var uri = BuildUri(_singletonHostOptions.BlobUriFormat, _hostOptions.AccountName, _singletonHostOptions.ContainerName, fileName);
+                var uri = BuildUri(_distributedLockOptions.BlobUriFormat, _hostOptions.AccountName, _distributedLockOptions.ContainerName, fileName);
                 return factory.Create(uri, _hostOptions.AuthenticationScheme);
             }
 
@@ -33,7 +33,7 @@ namespace Dequeueable.Services.Singleton
             }
 
             logger.LogDebug("Authenticate the BlobClient through the ConnectionString");
-            return factory.Create(_hostOptions.ConnectionString, _singletonHostOptions.ContainerName, fileName);
+            return factory.Create(_hostOptions.ConnectionString, _distributedLockOptions.ContainerName, fileName);
         }
 
         private Uri BuildUri(string? uriFormat, string? accountName, string containerName, string fileName)
@@ -48,7 +48,7 @@ namespace Dequeueable.Services.Singleton
                 uriFormat = uriFormat.Replace($"{{{nameof(HostOptions.AccountName)}}}", accountName, StringComparison.InvariantCultureIgnoreCase);
             }
 
-            uriFormat = uriFormat.Replace($"{{{nameof(_singletonHostOptions.ContainerName)}}}", containerName, StringComparison.InvariantCultureIgnoreCase);
+            uriFormat = uriFormat.Replace($"{{{nameof(_distributedLockOptions.ContainerName)}}}", containerName, StringComparison.InvariantCultureIgnoreCase);
             uriFormat = uriFormat.Replace($"{{blobName}}", fileName, StringComparison.InvariantCultureIgnoreCase);
 
             try

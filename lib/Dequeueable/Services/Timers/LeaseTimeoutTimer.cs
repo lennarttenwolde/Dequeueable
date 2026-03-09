@@ -1,8 +1,8 @@
-﻿using Dequeueable.Services.Singleton;
+﻿using Dequeueable.Services.DistributedLock;
 
 namespace Dequeueable.Services.Timers
 {
-    internal sealed class LeaseTimeoutTimer(ISingletonLockManager singletonLockManager, TimeProvider timeProvider, IDelayStrategy delayStrategy) : IAsyncDisposable
+    internal sealed class LeaseTimeoutTimer(IDistributedLockManager distributedLockManager, TimeProvider timeProvider, IDelayStrategy delayStrategy) : IAsyncDisposable
     {
         private readonly CancellationTokenSource _cts = new();
         private Task? _backgroundThread;
@@ -21,7 +21,7 @@ namespace Dequeueable.Services.Timers
             {
                 try
                 {
-                    leaseExpiresOn = await singletonLockManager.RenewLockAsync(leaseId, fileName, _cts.Token);
+                    leaseExpiresOn = await distributedLockManager.RenewLockAsync(leaseId, fileName, _cts.Token);
                     timer.Period = delayStrategy.GetNextDelay(leaseExpiresOn);
                 }
                 catch (OperationCanceledException)

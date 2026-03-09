@@ -1,6 +1,6 @@
 ﻿using Azure.Storage.Blobs;
 
-namespace Dequeueable.Services.Singleton
+namespace Dequeueable.Services.DistributedLock
 {
     /// <summary>
     /// Provides the <see cref="BlobClient"/> used for leasing the blob. Can be overriden if custom implementation is needed.

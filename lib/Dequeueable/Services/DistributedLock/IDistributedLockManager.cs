@@ -1,6 +1,6 @@
-﻿namespace Dequeueable.Services.Singleton
+﻿namespace Dequeueable.Services.DistributedLock
 {
-    internal interface ISingletonLockManager
+    internal interface IDistributedLockManager
     {
         Task<string> AquireLockAsync(string fileName, CancellationToken cancellationToken);
         Task ReleaseLockAsync(string leaseId, string fileName, CancellationToken cancellationToken);

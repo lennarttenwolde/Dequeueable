@@ -7,10 +7,10 @@ namespace Dequeueable.UnitTests.Configurations
     public class SingletonHostOptionsTests
     {
         [Fact]
-        public void Given_a_SingletonHostOptions_when_the_Scope_is_set_to_empty_then_the_validation_result_contains_the_correct_error_message()
+        public void Given_a_DistributedLockOptions_when_the_Scope_is_set_to_empty_then_the_validation_result_contains_the_correct_error_message()
         {
             // Arrange
-            var sut = new SingletonHostOptions
+            var sut = new DistributedLockOptions
             {
                 Scope = string.Empty
             };
@@ -23,10 +23,10 @@ namespace Dequeueable.UnitTests.Configurations
         }
 
         [Fact]
-        public void Given_a_SingletonHostOptions_when_the_MinimumPollingIntervalInSeconds_is_set_to_negative_then_the_validation_result_contains_the_correct_error_message()
+        public void Given_a_DistributedLockOptions_when_the_MinimumPollingIntervalInSeconds_is_set_to_negative_then_the_validation_result_contains_the_correct_error_message()
         {
             // Arrange
-            var sut = new SingletonHostOptions
+            var sut = new DistributedLockOptions
             {
                 MinimumPollingIntervalInSeconds = -1
             };
@@ -39,10 +39,10 @@ namespace Dequeueable.UnitTests.Configurations
         }
 
         [Fact]
-        public void Given_a_SingletonHostOptions_when_the_MinimumPollingIntervalInSeconds_is_set_within_range_then_the_validation_result_not_contains_the_error_message()
+        public void Given_a_DistributedLockOptions_when_the_MinimumPollingIntervalInSeconds_is_set_within_range_then_the_validation_result_not_contains_the_error_message()
         {
             // Arrange
-            var sut = new SingletonHostOptions
+            var sut = new DistributedLockOptions
             {
                 MinimumPollingIntervalInSeconds = 5
             };
@@ -55,10 +55,10 @@ namespace Dequeueable.UnitTests.Configurations
         }
 
         [Fact]
-        public void Given_a_SingletonHostOptions_when_the_MaximumPollingIntervalInSeconds_is_set_to_zero_then_the_validation_result_contains_the_correct_error_message()
+        public void Given_a_DistributedLockOptions_when_the_MaximumPollingIntervalInSeconds_is_set_to_zero_then_the_validation_result_contains_the_correct_error_message()
         {
             // Arrange
-            var sut = new SingletonHostOptions
+            var sut = new DistributedLockOptions
             {
                 MaximumPollingIntervalInSeconds = 0
             };
@@ -71,10 +71,10 @@ namespace Dequeueable.UnitTests.Configurations
         }
 
         [Fact]
-        public void Given_a_SingletonHostOptions_when_the_MaximumPollingIntervalInSeconds_is_set_within_range_then_the_validation_result_not_contains_the_error_message()
+        public void Given_a_DistributedLockOptions_when_the_MaximumPollingIntervalInSeconds_is_set_within_range_then_the_validation_result_not_contains_the_error_message()
         {
             // Arrange
-            var sut = new SingletonHostOptions
+            var sut = new DistributedLockOptions
             {
                 MaximumPollingIntervalInSeconds = 200
             };
@@ -87,10 +87,10 @@ namespace Dequeueable.UnitTests.Configurations
         }
 
         [Fact]
-        public void Given_a_SingletonHostOptions_when_the_MaxRetries_is_set_to_negative_then_the_validation_result_contains_the_correct_error_message()
+        public void Given_a_DistributedLockOptions_when_the_MaxRetries_is_set_to_negative_then_the_validation_result_contains_the_correct_error_message()
         {
             // Arrange
-            var sut = new SingletonHostOptions
+            var sut = new DistributedLockOptions
             {
                 MaxRetries = -1
             };
@@ -103,10 +103,10 @@ namespace Dequeueable.UnitTests.Configurations
         }
 
         [Fact]
-        public void Given_a_SingletonHostOptions_when_the_MaxRetries_is_set_set_to_11_then_the_validation_result_contains_the_correct_error_message()
+        public void Given_a_DistributedLockOptions_when_the_MaxRetries_is_set_set_to_11_then_the_validation_result_contains_the_correct_error_message()
         {
             // Arrange
-            var sut = new SingletonHostOptions
+            var sut = new DistributedLockOptions
             {
                 MaxRetries = 11
             };
@@ -119,10 +119,10 @@ namespace Dequeueable.UnitTests.Configurations
         }
 
         [Fact]
-        public void Given_a_SingletonHostOptions_when_the_MaxRetries_is_set_within_range_then_the_validation_result_not_contains_the_error_message()
+        public void Given_a_DistributedLockOptions_when_the_MaxRetries_is_set_within_range_then_the_validation_result_not_contains_the_error_message()
         {
             // Arrange
-            var sut = new SingletonHostOptions
+            var sut = new DistributedLockOptions
             {
                 MaxRetries = 5
             };
@@ -135,10 +135,10 @@ namespace Dequeueable.UnitTests.Configurations
         }
 
         [Fact]
-        public void Given_a_SingletonHostOptions_when_the_ContainerName_is_set_to_an_empty_string_then_the_validation_result_contains_the_correct_error_message()
+        public void Given_a_DistributedLockOptions_when_the_ContainerName_is_set_to_an_empty_string_then_the_validation_result_contains_the_correct_error_message()
         {
             // Arrange
-            var sut = new SingletonHostOptions
+            var sut = new DistributedLockOptions
             {
                 ContainerName = string.Empty
             };
@@ -151,10 +151,10 @@ namespace Dequeueable.UnitTests.Configurations
         }
 
         [Fact]
-        public void Given_a_SingletonHostOptions_when_the_BlobUriFormat_is_set_to_an_empty_string_then_the_validation_result_contains_the_correct_error_message()
+        public void Given_a_DistributedLockOptions_when_the_BlobUriFormat_is_set_to_an_empty_string_then_the_validation_result_contains_the_correct_error_message()
         {
             // Arrange
-            var sut = new SingletonHostOptions
+            var sut = new DistributedLockOptions
             {
                 BlobUriFormat = string.Empty
             };
@@ -167,34 +167,34 @@ namespace Dequeueable.UnitTests.Configurations
         }
 
         [Fact]
-        public void Given_a_SingletonHostOptions_when_MinimumPollingIntervalInSeconds_is_lower_than_MaximumPollingIntervalInSeconds_then_ValidateNewBatchThreshold_returns_true()
+        public void Given_a_DistributedLockOptions_when_MinimumPollingIntervalInSeconds_is_lower_than_MaximumPollingIntervalInSeconds_then_ValidateNewBatchThreshold_returns_true()
         {
             // Arrange
-            var sut = new SingletonHostOptions
+            var sut = new DistributedLockOptions
             {
                 MinimumPollingIntervalInSeconds = 5,
                 MaximumPollingIntervalInSeconds = 6
             };
 
             // Act
-            var result = SingletonHostOptions.ValidatePollingInterval(sut);
+            var result = DistributedLockOptions.ValidatePollingInterval(sut);
 
             // Assert
             result.Should().BeTrue();
         }
 
         [Fact]
-        public void Given_a_SingletonHostOptions_when_MinimumPollingIntervalInSeconds_is_higher_than_MaximumPollingIntervalInSeconds_then_ValidateNewBatchThreshold_returns_false()
+        public void Given_a_DistributedLockOptions_when_MinimumPollingIntervalInSeconds_is_higher_than_MaximumPollingIntervalInSeconds_then_ValidateNewBatchThreshold_returns_false()
         {
             // Arrange
-            var sut = new SingletonHostOptions
+            var sut = new DistributedLockOptions
             {
                 MinimumPollingIntervalInSeconds = 7,
                 MaximumPollingIntervalInSeconds = 6
             };
 
             // Act
-            var result = SingletonHostOptions.ValidatePollingInterval(sut);
+            var result = DistributedLockOptions.ValidatePollingInterval(sut);
 
             // Assert
             result.Should().BeFalse();

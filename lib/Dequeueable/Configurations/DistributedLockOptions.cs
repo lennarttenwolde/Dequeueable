@@ -3,9 +3,9 @@
 namespace Dequeueable.Configurations
 {
     /// <summary>
-    /// SingletonHostOptions to configure the singleton settings of the host
+    /// DistributedLockOptions to configure the singleton settings of the host
     /// </summary>
-    public class SingletonHostOptions
+    public class DistributedLockOptions
     {
         internal static string Name => $"{HostOptions.Dequeueable}:Singleton";
 
@@ -52,7 +52,7 @@ namespace Dequeueable.Configurations
         [Required(AllowEmptyStrings = false, ErrorMessage = "{0} cannot be empty.")]
         public string BlobUriFormat { get; set; } = "https://{accountName}.blob.core.windows.net/{containerName}/{blobName}";
 
-        internal static bool ValidatePollingInterval(SingletonHostOptions options)
+        internal static bool ValidatePollingInterval(DistributedLockOptions options)
         {
             return options.MinimumPollingIntervalInSeconds < options.MaximumPollingIntervalInSeconds;
         }

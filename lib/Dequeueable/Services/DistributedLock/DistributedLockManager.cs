@@ -4,19 +4,19 @@ using Dequeueable.Services.Timers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Dequeueable.Services.Singleton
+namespace Dequeueable.Services.DistributedLock
 {
-    internal sealed class SingletonLockManager(ILogger<SingletonLockManager> logger,
+    internal sealed class DistributedLockManager(ILogger<DistributedLockManager> logger,
     IBlobClientProvider blobClientProvider,
-    IDistributedLockManagerFactory distributedLockManagerFactory,
-    IOptions<SingletonHostOptions> singletonHostOptions) : ISingletonLockManager
+    IBlobLeaseManagerFactory blobLeaseManagerFactory,
+    IOptions<DistributedLockOptions> distributedLockOptions) : IDistributedLockManager
     {
         public async Task<string> AquireLockAsync(string fileName, CancellationToken cancellationToken)
         {
             var blobClient = blobClientProvider.GetClient(fileName);
-            var lockManager = distributedLockManagerFactory.Create(blobClient, singletonHostOptions.Value, logger);
+            var lockManager = blobLeaseManagerFactory.Create(blobClient, distributedLockOptions.Value, logger);
 
-            var leaseId = await AcquireLockAsync(singletonHostOptions.Value, lockManager, cancellationToken);
+            var leaseId = await AcquireLockAsync(distributedLockOptions.Value, lockManager, cancellationToken);
 
             logger.LogInformation("Lock with Id '{LeaseId}' acquired for '{FileName}'", leaseId, fileName);
 
@@ -26,7 +26,7 @@ namespace Dequeueable.Services.Singleton
         public async Task<DateTimeOffset> RenewLockAsync(string leaseId, string fileName, CancellationToken cancellationToken)
         {
             var blobClient = blobClientProvider.GetClient(fileName);
-            var lockManager = distributedLockManagerFactory.Create(blobClient, singletonHostOptions.Value, logger);
+            var lockManager = blobLeaseManagerFactory.Create(blobClient, distributedLockOptions.Value, logger);
 
             var nextVisibileOn = await lockManager.RenewAsync(leaseId, cancellationToken);
 
@@ -37,12 +37,12 @@ namespace Dequeueable.Services.Singleton
         public Task ReleaseLockAsync(string leaseId, string fileName, CancellationToken cancellationToken)
         {
             var blobClient = blobClientProvider.GetClient(fileName);
-            var lockManager = distributedLockManagerFactory.Create(blobClient, singletonHostOptions.Value, logger);
+            var lockManager = blobLeaseManagerFactory.Create(blobClient, distributedLockOptions.Value, logger);
 
             return lockManager.ReleaseAsync(leaseId, cancellationToken);
         }
 
-        private static async Task<string> AcquireLockAsync(SingletonHostOptions singleton, IDistributedLockManager lockManager, CancellationToken cancellationToken)
+        private static async Task<string> AcquireLockAsync(DistributedLockOptions singleton, IBlobLeaseManager leaseManager, CancellationToken cancellationToken)
         {
             var delayStrategy = new RandomizedExponentialDelayStrategy(TimeSpan.FromSeconds(singleton.MinimumPollingIntervalInSeconds), TimeSpan.FromSeconds(singleton.MaximumPollingIntervalInSeconds));
 
@@ -53,7 +53,7 @@ namespace Dequeueable.Services.Singleton
                     break;
                 }
 
-                var leaseId = await lockManager.AcquireAsync(cancellationToken);
+                var leaseId = await leaseManager.AcquireAsync(cancellationToken);
 
                 if (leaseId is not null)
                 {
@@ -63,7 +63,7 @@ namespace Dequeueable.Services.Singleton
                 await Task.Delay(delayStrategy.GetNextDelay(executionSucceeded: false), cancellationToken);
             }
 
-            throw new SingletonException($"Unable to acquire lock, max retries of '{singleton.MaxRetries}' reached");
+            throw new DistributedLockException($"Unable to acquire lock, max retries of '{singleton.MaxRetries}' reached");
         }
     }
 }

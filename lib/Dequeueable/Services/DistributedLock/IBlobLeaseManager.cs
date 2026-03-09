@@ -1,6 +1,6 @@
-﻿namespace Dequeueable.Services.Singleton
+﻿namespace Dequeueable.Services.DistributedLock
 {
-    internal interface IDistributedLockManager
+    internal interface IBlobLeaseManager
     {
         Task<string?> AcquireAsync(CancellationToken cancellationToken);
         Task ReleaseAsync(string leaseId, CancellationToken cancellationToken);
