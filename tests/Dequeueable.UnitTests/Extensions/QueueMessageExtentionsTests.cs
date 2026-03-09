@@ -1,11 +1,10 @@
 ﻿using Dequeueable.Extensions;
 using Dequeueable.UnitTests.TestDataBuilders;
-using FluentAssertions;
 using System.Text.Json;
 
-namespace Dequeueable.UnitTests.Extentions
+namespace Dequeueable.UnitTests.Extensions
 {
-    public class QueueMessageExtentionsTests
+    public class QueueMessageExtensionsTests
     {
         [Theory]
         [InlineData("some value")]
@@ -19,14 +18,13 @@ namespace Dequeueable.UnitTests.Extentions
             // Arrange
             var propertyName = "MyProperty";
             var body = BinaryData.FromObjectAsJson(new { MyProperty = propertyValue });
-
             var message = new MessageTestDataBuilder().WithBody(body).Build();
 
             // Act
             var result = message.GetValueByPropertyName(propertyName);
 
             // Assert
-            result.Should().Be(propertyValue?.ToString() ?? string.Empty);
+            Assert.Equal(propertyValue?.ToString() ?? string.Empty, result);
         }
 
         [Fact]
@@ -36,14 +34,13 @@ namespace Dequeueable.UnitTests.Extentions
             var propertyName = "Parent:Nested:Property";
             var propertyValue = "my value";
             var body = BinaryData.FromObjectAsJson(new { Parent = new { Nested = new { Property = propertyValue } } });
-
             var message = new MessageTestDataBuilder().WithBody(body).Build();
 
             // Act
             var result = message.GetValueByPropertyName(propertyName);
 
             // Assert
-            result.Should().Be(propertyValue);
+            Assert.Equal(propertyValue, result);
         }
 
         [Fact]
@@ -52,14 +49,11 @@ namespace Dequeueable.UnitTests.Extentions
             // Arrange
             var propertyName = "InvalidProperty";
             var body = BinaryData.FromObjectAsJson(new { InvalidProperty = new { ThisIsNotValid = "boom" } });
-
             var message = new MessageTestDataBuilder().WithBody(body).Build();
 
-            // Act
-            Action act = () => message.GetValueByPropertyName(propertyName);
-
-            // Assert
-            act.Should().ThrowExactly<InvalidOperationException>().WithMessage($"The value of type {JsonValueKind.Object} cannot be parsed to a string");
+            // Act & Assert
+            var ex = Assert.Throws<InvalidOperationException>(() => message.GetValueByPropertyName(propertyName));
+            Assert.Equal($"The value of type {JsonValueKind.Object} cannot be parsed to a string", ex.Message);
         }
 
         [Fact]
@@ -68,14 +62,11 @@ namespace Dequeueable.UnitTests.Extentions
             // Arrange
             var propertyName = "SomeList";
             var body = BinaryData.FromObjectAsJson(new { SomeList = new List<string> { "hey" } });
-
             var message = new MessageTestDataBuilder().WithBody(body).Build();
 
-            // Act
-            Action act = () => message.GetValueByPropertyName(propertyName);
-
-            // Assert
-            act.Should().ThrowExactly<InvalidOperationException>().WithMessage($"The value of type {JsonValueKind.Array} cannot be parsed to a string");
+            // Act & Assert
+            var ex = Assert.Throws<InvalidOperationException>(() => message.GetValueByPropertyName(propertyName));
+            Assert.Equal($"The value of type {JsonValueKind.Array} cannot be parsed to a string", ex.Message);
         }
     }
 }

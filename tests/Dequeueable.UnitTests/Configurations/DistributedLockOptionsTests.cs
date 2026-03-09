@@ -1,5 +1,4 @@
 ﻿using Dequeueable.Configurations;
-using FluentAssertions;
 using System.ComponentModel.DataAnnotations;
 
 namespace Dequeueable.UnitTests.Configurations
@@ -10,160 +9,130 @@ namespace Dequeueable.UnitTests.Configurations
         public void Given_a_DistributedLockOptions_when_the_Scope_is_set_to_empty_then_the_validation_result_contains_the_correct_error_message()
         {
             // Arrange
-            var sut = new DistributedLockOptions
-            {
-                Scope = string.Empty
-            };
+            var sut = new DistributedLockOptions { Scope = string.Empty };
 
             // Act
             var result = ValidateModel(sut);
 
             // Assert
-            result.Should().Contain(e => e.ErrorMessage!.Contains("Scope cannot be empty."));
+            Assert.Contains(result, e => e.ErrorMessage!.Contains("Scope cannot be empty.", StringComparison.Ordinal));
         }
 
         [Fact]
         public void Given_a_DistributedLockOptions_when_the_MinimumPollingIntervalInSeconds_is_set_to_negative_then_the_validation_result_contains_the_correct_error_message()
         {
             // Arrange
-            var sut = new DistributedLockOptions
-            {
-                MinimumPollingIntervalInSeconds = -1
-            };
+            var sut = new DistributedLockOptions { MinimumPollingIntervalInSeconds = -1 };
 
             // Act
             var result = ValidateModel(sut);
 
             // Assert
-            result.Should().Contain(e => e.ErrorMessage!.Contains("Value for MinimumPollingIntervalInSeconds must not be negative or zero."));
+            Assert.Contains(result, e => e.ErrorMessage!.Contains("Value for MinimumPollingIntervalInSeconds must not be negative or zero.", StringComparison.Ordinal));
         }
 
         [Fact]
         public void Given_a_DistributedLockOptions_when_the_MinimumPollingIntervalInSeconds_is_set_within_range_then_the_validation_result_not_contains_the_error_message()
         {
             // Arrange
-            var sut = new DistributedLockOptions
-            {
-                MinimumPollingIntervalInSeconds = 5
-            };
+            var sut = new DistributedLockOptions { MinimumPollingIntervalInSeconds = 5 };
 
             // Act
             var result = ValidateModel(sut);
 
             // Assert
-            result.Should().NotContain(e => e.MemberNames!.Contains("MinimumPollingIntervalInSeconds"));
+            Assert.DoesNotContain(result, e => e.MemberNames.Contains("MinimumPollingIntervalInSeconds"));
         }
 
         [Fact]
         public void Given_a_DistributedLockOptions_when_the_MaximumPollingIntervalInSeconds_is_set_to_zero_then_the_validation_result_contains_the_correct_error_message()
         {
             // Arrange
-            var sut = new DistributedLockOptions
-            {
-                MaximumPollingIntervalInSeconds = 0
-            };
+            var sut = new DistributedLockOptions { MaximumPollingIntervalInSeconds = 0 };
 
             // Act
             var result = ValidateModel(sut);
 
             // Assert
-            result.Should().Contain(e => e.ErrorMessage!.Contains("Value for MaximumPollingIntervalInSeconds must not be negative or zero."));
+            Assert.Contains(result, e => e.ErrorMessage!.Contains("Value for MaximumPollingIntervalInSeconds must not be negative or zero.", StringComparison.Ordinal));
         }
 
         [Fact]
         public void Given_a_DistributedLockOptions_when_the_MaximumPollingIntervalInSeconds_is_set_within_range_then_the_validation_result_not_contains_the_error_message()
         {
             // Arrange
-            var sut = new DistributedLockOptions
-            {
-                MaximumPollingIntervalInSeconds = 200
-            };
+            var sut = new DistributedLockOptions { MaximumPollingIntervalInSeconds = 200 };
 
             // Act
             var result = ValidateModel(sut);
 
             // Assert
-            result.Should().NotContain(e => e.MemberNames!.Contains("MaximumPollingIntervalInSeconds"));
+            Assert.DoesNotContain(result, e => e.MemberNames.Contains("MaximumPollingIntervalInSeconds"));
         }
 
         [Fact]
         public void Given_a_DistributedLockOptions_when_the_MaxRetries_is_set_to_negative_then_the_validation_result_contains_the_correct_error_message()
         {
             // Arrange
-            var sut = new DistributedLockOptions
-            {
-                MaxRetries = -1
-            };
+            var sut = new DistributedLockOptions { MaxRetries = -1 };
 
             // Act
             var result = ValidateModel(sut);
 
             // Assert
-            result.Should().Contain(e => e.ErrorMessage!.Contains("Value for MaxRetries must be between 0 and 10."));
+            Assert.Contains(result, e => e.ErrorMessage!.Contains("Value for MaxRetries must be between 0 and 10.", StringComparison.Ordinal));
         }
 
         [Fact]
         public void Given_a_DistributedLockOptions_when_the_MaxRetries_is_set_set_to_11_then_the_validation_result_contains_the_correct_error_message()
         {
             // Arrange
-            var sut = new DistributedLockOptions
-            {
-                MaxRetries = 11
-            };
+            var sut = new DistributedLockOptions { MaxRetries = 11 };
 
             // Act
             var result = ValidateModel(sut);
 
             // Assert
-            result.Should().Contain(e => e.ErrorMessage!.Contains("Value for MaxRetries must be between 0 and 10."));
+            Assert.Contains(result, e => e.ErrorMessage!.Contains("Value for MaxRetries must be between 0 and 10.", StringComparison.Ordinal));
         }
 
         [Fact]
         public void Given_a_DistributedLockOptions_when_the_MaxRetries_is_set_within_range_then_the_validation_result_not_contains_the_error_message()
         {
             // Arrange
-            var sut = new DistributedLockOptions
-            {
-                MaxRetries = 5
-            };
+            var sut = new DistributedLockOptions { MaxRetries = 5 };
 
             // Act
             var result = ValidateModel(sut);
 
             // Assert
-            result.Should().NotContain(e => e.MemberNames!.Contains("MaxRetries"));
+            Assert.DoesNotContain(result, e => e.MemberNames.Contains("MaxRetries"));
         }
 
         [Fact]
         public void Given_a_DistributedLockOptions_when_the_ContainerName_is_set_to_an_empty_string_then_the_validation_result_contains_the_correct_error_message()
         {
             // Arrange
-            var sut = new DistributedLockOptions
-            {
-                ContainerName = string.Empty
-            };
+            var sut = new DistributedLockOptions { ContainerName = string.Empty };
 
             // Act
             var result = ValidateModel(sut);
 
             // Assert
-            result.Should().Contain(e => e.ErrorMessage!.Contains("ContainerName cannot be empty."));
+            Assert.Contains(result, e => e.ErrorMessage!.Contains("ContainerName cannot be empty.", StringComparison.Ordinal));
         }
 
         [Fact]
         public void Given_a_DistributedLockOptions_when_the_BlobUriFormat_is_set_to_an_empty_string_then_the_validation_result_contains_the_correct_error_message()
         {
             // Arrange
-            var sut = new DistributedLockOptions
-            {
-                BlobUriFormat = string.Empty
-            };
+            var sut = new DistributedLockOptions { BlobUriFormat = string.Empty };
 
             // Act
             var result = ValidateModel(sut);
 
             // Assert
-            result.Should().Contain(e => e.ErrorMessage!.Contains("BlobUriFormat cannot be empty."));
+            Assert.Contains(result, e => e.ErrorMessage!.Contains("BlobUriFormat cannot be empty.", StringComparison.Ordinal));
         }
 
         [Fact]
@@ -180,7 +149,7 @@ namespace Dequeueable.UnitTests.Configurations
             var result = DistributedLockOptions.ValidatePollingInterval(sut);
 
             // Assert
-            result.Should().BeTrue();
+            Assert.True(result);
         }
 
         [Fact]
@@ -197,7 +166,7 @@ namespace Dequeueable.UnitTests.Configurations
             var result = DistributedLockOptions.ValidatePollingInterval(sut);
 
             // Assert
-            result.Should().BeFalse();
+            Assert.False(result);
         }
 
         private static List<ValidationResult> ValidateModel(object model)

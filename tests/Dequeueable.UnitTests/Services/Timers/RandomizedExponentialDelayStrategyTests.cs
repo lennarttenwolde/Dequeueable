@@ -1,5 +1,4 @@
 ﻿using Dequeueable.Services.Timers;
-using FluentAssertions;
 
 namespace Dequeueable.UnitTests.Services.Timers
 {
@@ -12,11 +11,8 @@ namespace Dequeueable.UnitTests.Services.Timers
             var minimumPollingInterval = TimeSpan.FromMilliseconds(-1);
             var maximumPollingInterval = TimeSpan.FromMilliseconds(2);
 
-            // Act
-            Action act = () => { var _ = new RandomizedExponentialDelayStrategy(minimumPollingInterval, maximumPollingInterval); };
-
-            // Assert
-            act.Should().ThrowExactly<ArgumentOutOfRangeException>();
+            // Act & Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => new RandomizedExponentialDelayStrategy(minimumPollingInterval, maximumPollingInterval));
         }
 
         [Fact]
@@ -26,11 +22,8 @@ namespace Dequeueable.UnitTests.Services.Timers
             var minimumPollingInterval = TimeSpan.FromMilliseconds(2);
             var maximumPollingInterval = TimeSpan.FromMilliseconds(1);
 
-            // Act
-            Action act = () => { var _ = new RandomizedExponentialDelayStrategy(minimumPollingInterval, maximumPollingInterval); };
-
-            // Assert
-            act.Should().ThrowExactly<ArgumentException>();
+            // Act & Assert
+            Assert.Throws<ArgumentException>(() => new RandomizedExponentialDelayStrategy(minimumPollingInterval, maximumPollingInterval));
         }
 
         [Fact]
@@ -40,11 +33,8 @@ namespace Dequeueable.UnitTests.Services.Timers
             var minimumPollingInterval = TimeSpan.FromMilliseconds(1);
             var maximumPollingInterval = TimeSpan.FromMilliseconds(-2);
 
-            // Act
-            Action act = () => { var _ = new RandomizedExponentialDelayStrategy(minimumPollingInterval, maximumPollingInterval); };
-
-            // Assert
-            act.Should().ThrowExactly<ArgumentOutOfRangeException>();
+            // Act & Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => new RandomizedExponentialDelayStrategy(minimumPollingInterval, maximumPollingInterval));
         }
 
         [Fact]
@@ -54,51 +44,44 @@ namespace Dequeueable.UnitTests.Services.Timers
             var minimumPollingInterval = TimeSpan.FromMilliseconds(2);
             var maximumPollingInterval = TimeSpan.FromMilliseconds(1);
 
-            // Act
-            Action act = () => { var _ = new RandomizedExponentialDelayStrategy(minimumPollingInterval, maximumPollingInterval); };
-
-            // Assert
-            act.Should().ThrowExactly<ArgumentException>();
+            // Act & Assert
+            Assert.Throws<ArgumentException>(() => new RandomizedExponentialDelayStrategy(minimumPollingInterval, maximumPollingInterval));
         }
 
         [Fact]
         public void Given_a_RandomizedExponentialDelayStrategy_when_GetNextDelay_is_called_with_executionSucceeded_true_then_the_correct_result_TimeSpan_is_returned()
         {
             // Arrange
-            var executionSucceeded = true;
             var minimumPollingInterval = TimeSpan.FromMilliseconds(1);
             var maximumPollingInterval = TimeSpan.FromMilliseconds(2);
-
             var sut = new RandomizedExponentialDelayStrategy(minimumPollingInterval, maximumPollingInterval);
 
             // Act
-            var actual = sut.GetNextDelay(executionSucceeded: executionSucceeded);
+            var actual = sut.GetNextDelay(executionSucceeded: true);
 
             // Assert
-            actual.Should().Be(minimumPollingInterval);
+            Assert.Equal(minimumPollingInterval, actual);
         }
 
         [Fact]
         public void Given_a_RandomizedExponentialBackoffStrategy_when_NextDelay_is_called_multiple_times_with_executionSucceeded_false_then_the_TimeSpan_increment_correctly()
         {
             // Arrange
-            var executionSucceeded = false;
             var minimumPollingInterval = TimeSpan.FromMilliseconds(1);
             var maximumPollingInterval = TimeSpan.FromMilliseconds(500);
-
             var sut = new RandomizedExponentialDelayStrategy(minimumPollingInterval, maximumPollingInterval);
 
             // Act & Assert
             var currentInterval = TimeSpan.Zero;
             while (currentInterval != maximumPollingInterval)
             {
-                var actual = sut.GetNextDelay(executionSucceeded: executionSucceeded);
-                actual.Should().BeGreaterThan(currentInterval);
+                var actual = sut.GetNextDelay(executionSucceeded: false);
+                Assert.True(actual > currentInterval);
 
                 currentInterval = actual;
             }
 
-            currentInterval.Should().Be(maximumPollingInterval);
+            Assert.Equal(maximumPollingInterval, currentInterval);
         }
     }
 }

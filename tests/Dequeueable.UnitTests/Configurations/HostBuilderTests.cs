@@ -1,7 +1,6 @@
 ﻿using Dequeueable.Models;
 using Dequeueable.Services.Hosts;
 using Dequeueable.Services.Queues;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Dequeueable.Services.DistributedLock;
@@ -24,21 +23,20 @@ namespace Dequeueable.UnitTests.Configurations
         {
             // Arrange
             var hostBuilder = Host.CreateDefaultBuilder()
-            .ConfigureServices(services =>
-            {
-                services
-                .AddDequeueable<TestJob>(options =>
+                .ConfigureServices(services =>
                 {
-                    options.QueueName = "test";
-                    options.ConnectionString = "UseDevelopmentStorage=true";
+                    services.AddDequeueable<TestJob>(options =>
+                    {
+                        options.QueueName = "test";
+                        options.ConnectionString = "UseDevelopmentStorage=true";
+                    });
                 });
-            });
 
             // Act
             var host = hostBuilder.Build();
 
             // Assert
-            host.Services.GetRequiredService<IJobExecutor>().Should().BeOfType<JobExecutor>();
+            Assert.IsType<JobExecutor>(host.Services.GetRequiredService<IJobExecutor>());
         }
 
         [Fact]
@@ -46,22 +44,22 @@ namespace Dequeueable.UnitTests.Configurations
         {
             // Arrange
             var hostBuilder = Host.CreateDefaultBuilder()
-            .ConfigureServices(services =>
-            {
-                services
-                .AddDequeueable<TestJob>(options =>
+                .ConfigureServices(services =>
                 {
-                    options.QueueName = "test";
-                    options.ConnectionString = "UseDevelopmentStorage=true";
-                })
-                .WithDistributedLock(opt => opt.Scope = "test");
-            });
+                    services
+                        .AddDequeueable<TestJob>(options =>
+                        {
+                            options.QueueName = "test";
+                            options.ConnectionString = "UseDevelopmentStorage=true";
+                        })
+                        .WithDistributedLock(opt => opt.Scope = "test");
+                });
 
             // Act
             var host = hostBuilder.Build();
 
             // Assert
-            host.Services.GetRequiredService<IQueueMessageExecutor>().Should().BeOfType<DistributedLockQueueMessageExecutor>();
+            Assert.IsType<DistributedLockQueueMessageExecutor>(host.Services.GetRequiredService<IQueueMessageExecutor>());
         }
     }
 }
