@@ -1,4 +1,4 @@
-# Azure Queue Storage Sample job
+# Sample job
 
 ## Docker
 
