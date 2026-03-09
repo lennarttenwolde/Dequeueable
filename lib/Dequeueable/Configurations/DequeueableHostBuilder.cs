@@ -2,6 +2,7 @@
 using Dequeueable.Services.DistributedLock;
 using Dequeueable.Services.Queues;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Dequeueable.Configurations

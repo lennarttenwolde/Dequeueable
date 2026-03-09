@@ -2,9 +2,7 @@
 using Dequeueable.IntegrationTests.Fixtures;
 using Dequeueable.IntegrationTests.TestDataBuilders;
 using Dequeueable.Models;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 
 namespace Dequeueable.IntegrationTests.Functions
 {
@@ -22,124 +20,98 @@ namespace Dequeueable.IntegrationTests.Functions
             _queueClient = new QueueClient(_azuriteFixture.ConnectionString, _queueName, _queueClientOptions);
         }
 
-        public Task InitializeAsync()
-        {
-            return _queueClient.CreateAsync();
-        }
-
-        public Task DisposeAsync()
-        {
-            return _queueClient.DeleteAsync();
-        }
+        public Task InitializeAsync() => _queueClient.CreateAsync();
+        public Task DisposeAsync() => _queueClient.DeleteAsync();
 
         [Fact]
         public async Task Given_a_Queue_when_is_has_two_messages_then_only_one_is_handled_correctly()
         {
             // Arrange
-            var factory = new JobHostFactory<TestFunction>(opt =>
+            var fakeService = new FakeService();
+            var factory = new JobHostFactory<TestJob>(opt =>
             {
                 opt.ConnectionString = _azuriteFixture.ConnectionString;
                 opt.QueueName = _queueName;
             });
 
-            var fakeServiceMock = new Mock<IFakeService>();
+            factory.ConfigureTestServices(services => services.AddTransient<IFakeService>(_ => fakeService));
 
             var messages = new[] { "message1", "message2" };
-
-            factory.ConfigureTestServices(services =>
-            {
-                services.AddTransient(_ => fakeServiceMock.Object);
-            });
-
             foreach (var message in messages)
-            {
                 await _queueClient.SendMessageAsync(message);
-            }
 
             // Act
-            var host = factory.Build();
-            await host.ExecuteAsync(CancellationToken.None);
+            await factory.Build().ExecuteAsync(CancellationToken.None);
 
             // Assert
             var peekedMessages = await _queueClient.PeekMessagesAsync();
-            peekedMessages.Value.Should().HaveCount(1);
+            Assert.Single(peekedMessages.Value);
 
-            foreach (var message in messages.Where(m => m != peekedMessages.Value.First().Body.ToString()))
-            {
-                fakeServiceMock.Verify(f => f.Execute(It.Is<Message>(m => m.Body.ToString() == message)), Times.Once());
-            }
+            Assert.Single(fakeService.ExecutedMessages);
+            var executedBody = fakeService.ExecutedMessages[0].Body.ToString();
+            Assert.Contains(executedBody, messages);
+
+            var remainingBody = peekedMessages.Value[0].Body.ToString();
+            Assert.NotEqual(executedBody, remainingBody);
         }
 
         [Fact]
         public async Task Given_a_QueueMessage_with_DequeueCount_1_when_an_error_occurred_while_executing_the_function_and_the_MaxDequeueCount_is_not_yet_reached_then_the_message_is_enqueued_correctly()
         {
             // Arrange
-            var factory = new JobHostFactory<TestFunction>(opt =>
+            var fakeService = new FakeService(shouldThrow: true);
+            var factory = new JobHostFactory<TestJob>(opt =>
             {
                 opt.ConnectionString = _azuriteFixture.ConnectionString;
                 opt.QueueName = _queueName;
                 opt.MaxDequeueCount = 5;
             });
 
-            var fakeServiceMock = new Mock<IFakeService>();
-            fakeServiceMock.Setup(f => f.Execute(It.IsAny<Message>())).ThrowsAsync(new Exception("Test exception"));
-
-            factory.ConfigureTestServices(services =>
-            {
-                services.AddTransient(_ => fakeServiceMock.Object);
-            });
+            factory.ConfigureTestServices(services => services.AddTransient<IFakeService>(_ => fakeService));
 
             var message = "message1";
             await _queueClient.SendMessageAsync(message);
 
             // Act
-            var host = factory.Build();
-            await host.ExecuteAsync(CancellationToken.None);
+            await factory.Build().ExecuteAsync(CancellationToken.None);
 
             // Assert
             var peekedMessage = await _queueClient.PeekMessageAsync();
-            peekedMessage.Value.Should().NotBeNull();
-            peekedMessage.Value.Body.ToString().Should().Be(message);
-            peekedMessage.Value.DequeueCount.Should().Be(1);
+            Assert.NotNull(peekedMessage.Value);
+            Assert.Equal(message, peekedMessage.Value.Body.ToString());
+            Assert.Equal(1, peekedMessage.Value.DequeueCount);
         }
 
         [Fact]
-        public async Task Given_a_QueueMessage_with_DequeueCount_1_when_an_error_occurred_while_executing_the_function_and_the_MaxDequeueCount_is_reached_then_the_message_is_moved_to_the_poisen_queue()
+        public async Task Given_a_QueueMessage_with_DequeueCount_1_when_an_error_occurred_while_executing_the_function_and_the_MaxDequeueCount_is_reached_then_the_message_is_moved_to_the_poison_queue()
         {
             // Arrange
-            var poisenQueueSuffix = "poison";
-            var factory = new JobHostFactory<TestFunction>(opt =>
+            var poisonQueueSuffix = "poison";
+            var fakeService = new FakeService(shouldThrow: true);
+            var factory = new JobHostFactory<TestJob>(opt =>
             {
                 opt.ConnectionString = _azuriteFixture.ConnectionString;
                 opt.QueueName = _queueName;
                 opt.MaxDequeueCount = 1;
-                opt.PoisonQueueSuffix = poisenQueueSuffix;
+                opt.PoisonQueueSuffix = poisonQueueSuffix;
             });
 
-            var fakeServiceMock = new Mock<IFakeService>();
-            fakeServiceMock.Setup(f => f.Execute(It.IsAny<Message>())).ThrowsAsync(new Exception("Test exception"));
-
-            factory.ConfigureTestServices(services =>
-            {
-                services.AddTransient(_ => fakeServiceMock.Object);
-            });
+            factory.ConfigureTestServices(services => services.AddTransient<IFakeService>(_ => fakeService));
 
             var message = "message1";
             await _queueClient.SendMessageAsync(message);
 
             // Act
-            var host = factory.Build();
-            await host.ExecuteAsync(CancellationToken.None);
+            await factory.Build().ExecuteAsync(CancellationToken.None);
 
             // Assert
             var peekedMessage = await _queueClient.PeekMessageAsync();
-            peekedMessage.Value.Should().BeNull();
+            Assert.Null(peekedMessage.Value);
 
-            var poisenQueueClient = new QueueClient(_azuriteFixture.ConnectionString, $"{_queueName}-{poisenQueueSuffix}", _queueClientOptions);
-
-            var peekedPoisonQueueMessage = await poisenQueueClient.PeekMessageAsync();
-            peekedPoisonQueueMessage.Value.Should().NotBeNull();
-            peekedPoisonQueueMessage.Value.Body.ToString().Should().Be(message);
+            var poisonQueueClient = new QueueClient(_azuriteFixture.ConnectionString, $"{_queueName}-{poisonQueueSuffix}", _queueClientOptions);
+            var peekedPoisonMessage = await poisonQueueClient.PeekMessageAsync();
+            Assert.NotNull(peekedPoisonMessage.Value);
+            Assert.Equal(message, peekedPoisonMessage.Value.Body.ToString());
         }
     }
 }

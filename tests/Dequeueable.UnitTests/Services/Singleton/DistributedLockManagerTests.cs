@@ -1,123 +1,130 @@
-﻿using Azure.Storage.Blobs;
-using Dequeueable.Configurations;
+﻿using Dequeueable.Configurations;
 using Dequeueable.Factories;
 using Dequeueable.Services.DistributedLock;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
-using Moq;
+using NSubstitute;
 
 namespace Dequeueable.UnitTests.Services.Singleton
 {
     public class DistributedLockManagerTests
     {
+        private readonly string _fileName = "someName";
+        private readonly string _leaseId = "someId";
+
+        private (DistributedLockManager sut, FakeLogger<DistributedLockManager> logger, IBlobLeaseManager leaseManager) CreateSut(DistributedLockOptions? options = null)
+        {
+            var logger = new FakeLogger<DistributedLockManager>();
+            var leaseManager = Substitute.For<IBlobLeaseManager>();
+            var factory = Substitute.For<IBlobLeaseManagerFactory>();
+            factory.Create(_fileName).Returns(leaseManager);
+
+            var sut = new DistributedLockManager(logger, factory, Options.Create(options ?? new DistributedLockOptions()));
+            return (sut, logger, leaseManager);
+        }
+
         [Fact]
         public async Task Given_a_LockManager_when_AquireLockAsync_is_called_and_the_lock_is_acquired_then_the_leaseId_is_returned()
         {
             // Arrange
-            var leaseId = "someId";
-            var fileName = "someName";
-            var options = new HostOptions { ConnectionString = "some string" };
-            var loggerMock = new Mock<ILogger<DistributedLockManager>>(MockBehavior.Strict);
-
-            var blobClientProviderMock = new Mock<IBlobClientProvider>(MockBehavior.Strict);
-            var blobLeaseManagerFactoryMock = new Mock<IBlobLeaseManagerFactory>(MockBehavior.Strict);
-            var blobLeaseManagerMock = new Mock<IBlobLeaseManager>(MockBehavior.Strict);
-            var distributedLockOptions = new DistributedLockOptions();
-            var singletonHostOptionsMock = new Mock<IOptions<DistributedLockOptions>>();
-            var blobClientFake = new Mock<BlobClient>();
-
-            singletonHostOptionsMock.Setup(o => o.Value).Returns(distributedLockOptions);
-            blobClientProviderMock.Setup(c => c.GetClient(fileName)).Returns(blobClientFake.Object);
-            blobLeaseManagerFactoryMock.Setup(f => f.Create(blobClientFake.Object, distributedLockOptions, loggerMock.Object)).Returns(blobLeaseManagerMock.Object);
-            loggerMock.Setup(
-                x => x.Log(
-                It.Is<LogLevel>(l => l == LogLevel.Information),
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Lock with Id '{leaseId}' acquired for '{fileName}'")),
-                null,
-                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)))
-                .Verifiable();
-            blobLeaseManagerMock.Setup(m => m.AcquireAsync(CancellationToken.None)).ReturnsAsync(leaseId);
-
-            var sut = new DistributedLockManager(loggerMock.Object, blobClientProviderMock.Object, blobLeaseManagerFactoryMock.Object, singletonHostOptionsMock.Object);
+            var (sut, logger, leaseManager) = CreateSut();
+            leaseManager.AcquireAsync(Arg.Any<CancellationToken>()).Returns(_leaseId);
 
             // Act
-            var result = await sut.AquireLockAsync(fileName, CancellationToken.None);
+            var result = await sut.AquireLockAsync(_fileName, CancellationToken.None);
 
             // Assert
-            result.Should().Be(leaseId);
+            Assert.Equal(_leaseId, result);
+            Assert.Contains(logger.Collector.GetSnapshot(), e => e.Level == LogLevel.Information && e.Message.Contains($"Lock with Id '{_leaseId}' acquired for '{_fileName}'", StringComparison.Ordinal));
         }
 
         [Fact]
         public async Task Given_a_LockManager_when_AquireLockAsync_is_called_and_the_lock_cannot_be_acquired_at_first_then_it_is_retried_correctly()
         {
             // Arrange
-            var leaseId = "someId";
-            var fileName = "someName";
-            var options = new HostOptions { ConnectionString = "some string" };
-            var loggerMock = new Mock<ILogger<DistributedLockManager>>(MockBehavior.Strict);
+            var (sut, _, leaseManager) = CreateSut(new DistributedLockOptions
+            {
+                MaxRetries = 5,
+                MinimumPollingIntervalInSeconds = 0,
+                MaximumPollingIntervalInSeconds = 1
+            });
 
-            var blobClientProviderMock = new Mock<IBlobClientProvider>(MockBehavior.Strict);
-            var blobLeaseManagerFactoryMock = new Mock<IBlobLeaseManagerFactory>(MockBehavior.Strict);
-            var blobLeaseManagerMock = new Mock<IBlobLeaseManager>(MockBehavior.Strict);
-            var distributedLockOptions = new DistributedLockOptions { MaxRetries = 5, MinimumPollingIntervalInSeconds = 1, MaximumPollingIntervalInSeconds = 1 };
-            var singletonHostOptionsMock = new Mock<IOptions<DistributedLockOptions>>();
-            var blobClientFake = new Mock<BlobClient>();
-
-            singletonHostOptionsMock.Setup(o => o.Value).Returns(distributedLockOptions);
-            blobClientProviderMock.Setup(c => c.GetClient(fileName)).Returns(blobClientFake.Object);
-            blobLeaseManagerFactoryMock.Setup(f => f.Create(blobClientFake.Object, distributedLockOptions, loggerMock.Object)).Returns(blobLeaseManagerMock.Object);
-            loggerMock.Setup(
-                x => x.Log(
-                It.Is<LogLevel>(l => l == LogLevel.Information),
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Lock with Id '{leaseId}' acquired for '{fileName}'")),
-                null,
-                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)))
-                .Verifiable();
-            blobLeaseManagerMock.SetupSequence(m => m.AcquireAsync(CancellationToken.None))
-                .ReturnsAsync((string?)null)
-                .ReturnsAsync(leaseId);
-
-            var sut = new DistributedLockManager(loggerMock.Object, blobClientProviderMock.Object, blobLeaseManagerFactoryMock.Object, singletonHostOptionsMock.Object);
+            leaseManager.AcquireAsync(Arg.Any<CancellationToken>()).Returns((string?)null, _leaseId);
 
             // Act
-            var result = await sut.AquireLockAsync(fileName, CancellationToken.None);
+            var result = await sut.AquireLockAsync(_fileName, CancellationToken.None);
 
             // Assert
-            result.Should().Be(leaseId);
+            Assert.Equal(_leaseId, result);
+            await leaseManager.Received(2).AcquireAsync(Arg.Any<CancellationToken>());
         }
 
         [Fact]
-        public async Task Given_a_LockManager_when_AquireLockAsync_is_called_and_the_lock_cannot_be_acquired_and_the_MaxRetries_is_reached_then_a_SingletonException_is_thrown()
+        public async Task Given_a_LockManager_when_AquireLockAsync_is_called_and_the_lock_cannot_be_acquired_and_the_MaxRetries_is_reached_then_a_DistributedLockException_is_thrown()
         {
             // Arrange
-            var fileName = "someName";
-            var options = new HostOptions { ConnectionString = "some string" };
-            var loggerMock = new Mock<ILogger<DistributedLockManager>>(MockBehavior.Strict);
+            var (sut, _, leaseManager) = CreateSut(new DistributedLockOptions
+            {
+                MaxRetries = 1,
+                MinimumPollingIntervalInSeconds = 0,
+                MaximumPollingIntervalInSeconds = 1
+            });
 
-            var blobClientProviderMock = new Mock<IBlobClientProvider>(MockBehavior.Strict);
-            var blobLeaseManagerFactoryMock = new Mock<IBlobLeaseManagerFactory>(MockBehavior.Strict);
-            var blobLeaseManagerMock = new Mock<IBlobLeaseManager>(MockBehavior.Strict);
-            var distributedLockOptions = new DistributedLockOptions { MaxRetries = 1, MinimumPollingIntervalInSeconds = 1, MaximumPollingIntervalInSeconds = 1 };
-            var singletonHostOptionsMock = new Mock<IOptions<DistributedLockOptions>>();
-            var blobClientFake = new Mock<BlobClient>();
+            leaseManager.AcquireAsync(Arg.Any<CancellationToken>()).Returns((string?)null);
 
-            singletonHostOptionsMock.Setup(o => o.Value).Returns(distributedLockOptions);
-            blobClientProviderMock.Setup(c => c.GetClient(fileName)).Returns(blobClientFake.Object);
-            blobLeaseManagerFactoryMock.Setup(f => f.Create(blobClientFake.Object, distributedLockOptions, loggerMock.Object)).Returns(blobLeaseManagerMock.Object);
-            blobLeaseManagerMock.SetupSequence(m => m.AcquireAsync(CancellationToken.None))
-                .ReturnsAsync((string?)null)
-                .ReturnsAsync((string?)null);
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<DistributedLockException>(() => sut.AquireLockAsync(_fileName, CancellationToken.None));
+            Assert.Equal("Unable to acquire lock, max retries of '1' reached", ex.Message);
+        }
 
-            var sut = new DistributedLockManager(loggerMock.Object, blobClientProviderMock.Object, blobLeaseManagerFactoryMock.Object, singletonHostOptionsMock.Object);
+        [Fact]
+        public async Task Given_a_LockManager_when_AquireLockAsync_is_called_and_cancellation_is_requested_then_a_DistributedLockException_is_thrown()
+        {
+            // Arrange
+            var (sut, _, leaseManager) = CreateSut(new DistributedLockOptions
+            {
+                MaxRetries = 10,
+                MinimumPollingIntervalInSeconds = 0,
+                MaximumPollingIntervalInSeconds = 1
+            });
+
+            leaseManager.AcquireAsync(Arg.Any<CancellationToken>()).Returns((string?)null);
+            using var cts = new CancellationTokenSource();
+            await cts.CancelAsync();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<DistributedLockException>(() => sut.AquireLockAsync(_fileName, cts.Token));
+        }
+
+        [Fact]
+        public async Task Given_a_LockManager_when_RenewLockAsync_is_called_then_the_lock_is_renewed_and_logged()
+        {
+            // Arrange
+            var (sut, logger, leaseManager) = CreateSut();
+            var nextVisible = DateTimeOffset.UtcNow.AddMinutes(1);
+            leaseManager.RenewAsync(_leaseId, Arg.Any<CancellationToken>()).Returns(nextVisible);
 
             // Act
-            Func<Task> act = () => sut.AquireLockAsync(fileName, CancellationToken.None);
+            var result = await sut.RenewLockAsync(_leaseId, _fileName, CancellationToken.None);
 
             // Assert
-            await act.Should().ThrowExactlyAsync<DistributedLockException>().WithMessage($"Unable to acquire lock, max retries of '{distributedLockOptions.MaxRetries}' reached");
+            Assert.Equal(nextVisible, result);
+            Assert.Contains(logger.Collector.GetSnapshot(), e => e.Level == LogLevel.Information && e.Message.Contains($"Lock with Id '{_leaseId}' renewed", StringComparison.Ordinal));
+        }
+
+        [Fact]
+        public async Task Given_a_LockManager_when_ReleaseLockAsync_is_called_then_the_lock_is_released()
+        {
+            // Arrange
+            var (sut, _, leaseManager) = CreateSut();
+            leaseManager.ReleaseAsync(_leaseId, Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+
+            // Act
+            await sut.ReleaseLockAsync(_leaseId, _fileName, CancellationToken.None);
+
+            // Assert
+            await leaseManager.Received(1).ReleaseAsync(_leaseId, Arg.Any<CancellationToken>());
         }
     }
 }

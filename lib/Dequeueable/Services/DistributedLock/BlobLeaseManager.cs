@@ -8,19 +8,22 @@ using System.Text;
 
 namespace Dequeueable.Services.DistributedLock
 {
-    internal sealed class BlobLeaseManager(BlobClient blobClient, DistributedLockOptions distributedLockOptions, ILogger logger) : IBlobLeaseManager
+    internal sealed class BlobLeaseManager(
+    string blobName, IBlobClientProvider blobClientProvider, DistributedLockOptions distributedLockOptions, ILogger logger) : IBlobLeaseManager
     {
+
+        private readonly BlobClient _blobClient = blobClientProvider.GetClient(blobName);
         private TimeSpan LeaseDuration => TimeSpan.FromSeconds(distributedLockOptions.LeaseDurationInSeconds);
 
         public async Task<string?> AcquireAsync(CancellationToken cancellationToken)
         {
             try
             {
-                var blobProperties = await GetBlobMetadataAsync(blobClient, cancellationToken);
+                var blobProperties = await GetBlobMetadataAsync(_blobClient, cancellationToken);
 
                 return (blobProperties?.LeaseState) switch
                 {
-                    null or LeaseState.Available or LeaseState.Expired or LeaseState.Broken => await TryLeaseAsync(blobClient),
+                    null or LeaseState.Available or LeaseState.Expired or LeaseState.Broken => await TryLeaseAsync(_blobClient),
                     _ => null,
                 };
             }
@@ -34,18 +37,18 @@ namespace Dequeueable.Services.DistributedLock
         {
             try
             {
-                var blobProperties = await GetBlobMetadataAsync(blobClient, cancellationToken);
+                var blobProperties = await GetBlobMetadataAsync(_blobClient, cancellationToken);
 
                 if (blobProperties?.LeaseState is not LeaseState.Leased)
                 {
-                    throw new DistributedLockException($"Unable to renew the lock for {blobClient.Name} because the lease is not active anymore");
+                    throw new DistributedLockException($"Unable to renew the lock for {_blobClient.Name} because the lease is not active anymore");
                 }
 
-                return await TryRenewAsync(leaseId, blobClient);
+                return await TryRenewAsync(leaseId, _blobClient);
             }
             catch (RequestFailedException exception)
             {
-                logger.LogError(exception, "An error occurred while acquiring the lease for blob '{BlobName}'", blobClient.Name);
+                logger.LogError(exception, "An error occurred while acquiring the lease for blob '{BlobName}'", _blobClient.Name);
                 throw;
             }
         }
@@ -54,7 +57,7 @@ namespace Dequeueable.Services.DistributedLock
         {
             try
             {
-                var blobLeaseClient = blobClient.GetBlobLeaseClient(leaseId);
+                var blobLeaseClient = _blobClient.GetBlobLeaseClient(leaseId);
                 // Note that this call returns without throwing if the lease is expired.
                 await blobLeaseClient.ReleaseAsync(cancellationToken: cancellationToken);
             }

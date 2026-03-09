@@ -23,7 +23,7 @@ namespace Dequeueable.IntegrationTests
             _hostBuilder = Host.CreateDefaultBuilder()
                 .ConfigureServices(services =>
                 {
-                    var hostBuilder = services.AddDequeueable<TestFunction>(_options);
+                    var hostBuilder = services.AddDequeueable<TestJob>(_options);
 
                     if (distributedLockOptions is not null)
                     {

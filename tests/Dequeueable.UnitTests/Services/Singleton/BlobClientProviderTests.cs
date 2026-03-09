@@ -1,11 +1,11 @@
-﻿using Moq;
-using Microsoft.Extensions.Logging;
-using Azure.Storage.Blobs;
+﻿using Azure.Storage.Blobs;
+using Azure.Identity;
 using Dequeueable.Factories;
 using Dequeueable.Configurations;
 using Microsoft.Extensions.Options;
-using Azure.Identity;
-using FluentAssertions;
+using Microsoft.Extensions.Logging.Testing;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 using Dequeueable.Services.DistributedLock;
 
 namespace Dequeueable.UnitTests.Services.Singleton
@@ -17,36 +17,22 @@ namespace Dequeueable.UnitTests.Services.Singleton
         {
             // Arrange
             var fileName = "some-file";
-            var options = new HostOptions
-            {
-                ConnectionString = "unit-test",
-            };
-
+            var options = new HostOptions { ConnectionString = "unit-test" };
             var distributedLockOptions = new DistributedLockOptions();
-            var singletonHostOptionsMock = new Mock<IOptions<DistributedLockOptions>>();
-            var loggerMock = new Mock<ILogger<BlobClientProvider>>();
-            var factoryMock = new Mock<IBlobClientFactory>(MockBehavior.Strict);
+            var logger = new FakeLogger<BlobClientProvider>();
+            var factoryMock = Substitute.For<IBlobClientFactory>();
 
-            singletonHostOptionsMock.Setup(o => o.Value).Returns(distributedLockOptions);
-            factoryMock.Setup(f => f.Create(options.ConnectionString, distributedLockOptions.ContainerName, fileName))
-                .Returns(new Mock<BlobClient>().Object)
-                .Verifiable();
+            factoryMock.Create(options.ConnectionString, distributedLockOptions.ContainerName, fileName)
+                .Returns(Substitute.For<BlobClient>());
 
-            var sut = new BlobClientProvider(factoryMock.Object, Options.Create(options), singletonHostOptionsMock.Object, loggerMock.Object);
+            var sut = new BlobClientProvider(factoryMock, Options.Create(options), Options.Create(distributedLockOptions), logger);
 
             // Act
             sut.GetClient(fileName);
 
             // Assert
-            factoryMock.Verify();
-            loggerMock.Verify(
-                x => x.Log(
-                It.Is<LogLevel>(l => l == LogLevel.Debug),
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Authenticate the BlobClient through the ConnectionString")),
-                It.IsAny<Exception>(),
-                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
-            Times.Once);
+            factoryMock.Received(1).Create(options.ConnectionString, distributedLockOptions.ContainerName, fileName);
+            Assert.Contains(logger.Collector.GetSnapshot(), e => e.Level == LogLevel.Debug && e.Message.Contains("Authenticate the BlobClient through the ConnectionString"));
         }
 
         [Fact]
@@ -59,33 +45,21 @@ namespace Dequeueable.UnitTests.Services.Singleton
                 AuthenticationScheme = new DefaultAzureCredential(),
                 AccountName = "testaccount"
             };
-
             var distributedLockOptions = new DistributedLockOptions();
-            var singletonHostOptionsMock = new Mock<IOptions<DistributedLockOptions>>();
-            var loggerMock = new Mock<ILogger<BlobClientProvider>>();
-            var factoryMock = new Mock<IBlobClientFactory>(MockBehavior.Strict);
+            var logger = new FakeLogger<BlobClientProvider>();
+            var factoryMock = Substitute.For<IBlobClientFactory>();
 
-            singletonHostOptionsMock.Setup(o => o.Value).Returns(distributedLockOptions);
+            factoryMock.Create(Arg.Is<Uri>(uri => uri.AbsoluteUri == "https://testaccount.blob.core.windows.net/webjobshost/some-file"), options.AuthenticationScheme)
+                .Returns(Substitute.For<BlobClient>());
 
-            factoryMock.Setup(f => f.Create(It.Is<Uri>(uri => uri.AbsoluteUri == "https://testaccount.blob.core.windows.net/webjobshost/some-file"), options.AuthenticationScheme))
-                .Returns(new Mock<BlobClient>().Object)
-                .Verifiable();
-
-            var sut = new BlobClientProvider(factoryMock.Object, Options.Create(options), singletonHostOptionsMock.Object, loggerMock.Object);
+            var sut = new BlobClientProvider(factoryMock, Options.Create(options), Options.Create(distributedLockOptions), logger);
 
             // Act
             sut.GetClient(fileName);
 
             // Assert
-            factoryMock.Verify();
-            loggerMock.Verify(
-                x => x.Log(
-                It.Is<LogLevel>(l => l == LogLevel.Debug),
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Authenticate the BlobClient through Active Directory")),
-                It.IsAny<Exception>(),
-                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
-            Times.Once);
+            factoryMock.Received(1).Create(Arg.Is<Uri>(uri => uri.AbsoluteUri == "https://testaccount.blob.core.windows.net/webjobshost/some-file"), options.AuthenticationScheme);
+            Assert.Contains(logger.Collector.GetSnapshot(), e => e.Level == LogLevel.Debug && e.Message.Contains("Authenticate the BlobClient through Active Directory"));
         }
 
         [Fact]
@@ -98,33 +72,21 @@ namespace Dequeueable.UnitTests.Services.Singleton
                 AuthenticationScheme = new DefaultAzureCredential(),
                 AccountName = "testaccount"
             };
-
             var distributedLockOptions = new DistributedLockOptions { BlobUriFormat = "https://{blobName}.privateazure.com" };
-            var singletonHostOptionsMock = new Mock<IOptions<DistributedLockOptions>>();
-            var loggerMock = new Mock<ILogger<BlobClientProvider>>();
-            var factoryMock = new Mock<IBlobClientFactory>(MockBehavior.Strict);
+            var logger = new FakeLogger<BlobClientProvider>();
+            var factoryMock = Substitute.For<IBlobClientFactory>();
 
-            singletonHostOptionsMock.Setup(o => o.Value).Returns(distributedLockOptions);
+            factoryMock.Create(Arg.Is<Uri>(uri => uri.AbsoluteUri == "https://some-file.privateazure.com/"), options.AuthenticationScheme)
+                .Returns(Substitute.For<BlobClient>());
 
-            factoryMock.Setup(f => f.Create(It.Is<Uri>(uri => uri.AbsoluteUri == "https://some-file.privateazure.com/"), options.AuthenticationScheme))
-                .Returns(new Mock<BlobClient>().Object)
-                .Verifiable();
-
-            var sut = new BlobClientProvider(factoryMock.Object, Options.Create(options), singletonHostOptionsMock.Object, loggerMock.Object);
+            var sut = new BlobClientProvider(factoryMock, Options.Create(options), Options.Create(distributedLockOptions), logger);
 
             // Act
             sut.GetClient(fileName);
 
             // Assert
-            factoryMock.Verify();
-            loggerMock.Verify(
-                x => x.Log(
-                It.Is<LogLevel>(l => l == LogLevel.Debug),
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Authenticate the BlobClient through Active Directory")),
-                It.IsAny<Exception>(),
-                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
-            Times.Once);
+            factoryMock.Received(1).Create(Arg.Is<Uri>(uri => uri.AbsoluteUri == "https://some-file.privateazure.com/"), options.AuthenticationScheme);
+            Assert.Contains(logger.Collector.GetSnapshot(), e => e.Level == LogLevel.Debug && e.Message.Contains("Authenticate the BlobClient through Active Directory"));
         }
 
         [Fact]
@@ -137,35 +99,20 @@ namespace Dequeueable.UnitTests.Services.Singleton
                 AuthenticationScheme = new DefaultAzureCredential(),
                 AccountName = "invalid account!"
             };
-
             var distributedLockOptions = new DistributedLockOptions();
-            var singletonHostOptionsMock = new Mock<IOptions<DistributedLockOptions>>();
-            var loggerMock = new Mock<ILogger<BlobClientProvider>>();
-            var factoryMock = new Mock<IBlobClientFactory>(MockBehavior.Strict);
+            var logger = new FakeLogger<BlobClientProvider>();
+            var factoryMock = Substitute.For<IBlobClientFactory>();
 
-            singletonHostOptionsMock.Setup(o => o.Value).Returns(distributedLockOptions);
+            var sut = new BlobClientProvider(factoryMock, Options.Create(options), Options.Create(distributedLockOptions), logger);
 
-            var sut = new BlobClientProvider(factoryMock.Object, Options.Create(options), singletonHostOptionsMock.Object, loggerMock.Object);
-
-            // Act
-            Action act = () => sut.GetClient(fileName);
-
-            // Assert
-            act.Should().ThrowExactly<UriFormatException>();
-            loggerMock.Verify(
-                x => x.Log(
-                It.Is<LogLevel>(l => l == LogLevel.Error),
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Invalid Uri: The Blob Uri could not be parsed.")),
-                It.IsAny<UriFormatException>(),
-                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
-            Times.Once);
+            // Act & Assert
+            Assert.Throws<UriFormatException>(() => sut.GetClient(fileName));
+            Assert.Contains(logger.Collector.GetSnapshot(), e => e.Level == LogLevel.Error && e.Message.Contains("Invalid Uri: The Blob Uri could not be parsed."));
         }
 
         [Fact]
         public void Given_a_QueueClientProvider_when_GetQueue_is_called_with_no_AuthScheme_or_ConnectionString_then_an_InvalidOperationException_is_thrown()
         {
-            // Arrange
             // Arrange
             var fileName = "some-file";
             var options = new HostOptions
@@ -173,21 +120,17 @@ namespace Dequeueable.UnitTests.Services.Singleton
                 AuthenticationScheme = null,
                 ConnectionString = null
             };
-
             var distributedLockOptions = new DistributedLockOptions();
-            var singletonHostOptionsMock = new Mock<IOptions<DistributedLockOptions>>();
-            var loggerMock = new Mock<ILogger<BlobClientProvider>>();
-            var factoryMock = new Mock<IBlobClientFactory>(MockBehavior.Strict);
+            var logger = new FakeLogger<BlobClientProvider>();
+            var factoryMock = Substitute.For<IBlobClientFactory>();
 
-            singletonHostOptionsMock.Setup(o => o.Value).Returns(distributedLockOptions);
-
-            var sut = new BlobClientProvider(factoryMock.Object, Options.Create(options), singletonHostOptionsMock.Object, loggerMock.Object);
+            var sut = new BlobClientProvider(factoryMock, Options.Create(options), Options.Create(distributedLockOptions), logger);
 
             // Act
-            Action act = () => sut.GetClient(fileName);
+            var ex = Assert.Throws<InvalidOperationException>(() => sut.GetClient(fileName));
 
             // Assert
-            act.Should().ThrowExactly<InvalidOperationException>().WithMessage("No AuthenticationScheme or ConnectionString supplied. Make sure that it is defined in the app settings");
+            Assert.Equal("No AuthenticationScheme or ConnectionString supplied. Make sure that it is defined in the app settings", ex.Message);
         }
     }
 }

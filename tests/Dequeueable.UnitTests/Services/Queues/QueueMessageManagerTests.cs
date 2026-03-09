@@ -4,9 +4,9 @@ using Azure.Storage.Queues.Models;
 using Dequeueable.Configurations;
 using Dequeueable.Services.Queues;
 using Dequeueable.UnitTests.TestDataBuilders;
-using FluentAssertions;
 using Microsoft.Extensions.Options;
-using Moq;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 
 namespace Dequeueable.UnitTests.Services.Queues
 {
@@ -17,23 +17,23 @@ namespace Dequeueable.UnitTests.Services.Queues
         {
             // Arrange
             var options = new HostOptions();
-            var queueClientProviderMock = new Mock<IQueueClientProvider>(MockBehavior.Strict);
-            var queueClientFake = new Mock<QueueClient>(MockBehavior.Strict);
+            var queueClientProvider = Substitute.For<IQueueClientProvider>();
+            var queueClient = Substitute.For<QueueClient>();
             var queueMessages = new[] { QueuesModelFactory.QueueMessage("id", "pop", BinaryData.FromString("message"), 2) };
 
-            var responseFake = new Mock<Response<QueueMessage[]>>();
-            responseFake.SetupGet(r => r.Value).Returns(queueMessages);
-            queueClientFake.Setup(c => c.ReceiveMessagesAsync(1, TimeSpan.FromSeconds(options.VisibilityTimeoutInSeconds), It.IsAny<CancellationToken>())).ReturnsAsync(responseFake.Object);
-            queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
-            queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(queueClientFake.Object);
+            var response = Substitute.For<Response<QueueMessage[]>>();
+            response.Value.Returns(queueMessages);
+            queueClient.ReceiveMessagesAsync(1, TimeSpan.FromSeconds(options.VisibilityTimeoutInSeconds), Arg.Any<CancellationToken>()).Returns(response);
+            queueClientProvider.GetQueue().Returns(queueClient);
+            queueClientProvider.GetPoisonQueue().Returns(queueClient);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
+            var sut = new QueueMessageManager(queueClientProvider, Options.Create(options));
 
             // Act
             var message = await sut.RetrieveMessageAsync(CancellationToken.None);
 
             // Assert
-            message.Should().NotBeNull();
+            Assert.NotNull(message);
         }
 
         [Fact]
@@ -41,29 +41,28 @@ namespace Dequeueable.UnitTests.Services.Queues
         {
             // Arrange
             var options = new HostOptions();
-            var queueClientProviderMock = new Mock<IQueueClientProvider>(MockBehavior.Strict);
-            var queueClientFake = new Mock<QueueClient>(MockBehavior.Strict);
+            var queueClientProvider = Substitute.For<IQueueClientProvider>();
+            var queueClient = Substitute.For<QueueClient>();
             var queueMessages = new[] { QueuesModelFactory.QueueMessage("id", "pop", BinaryData.FromString("message"), 2) };
-            var succeededResponseFake = new Mock<Response<QueueMessage[]>>();
 
-            succeededResponseFake.SetupGet(r => r.Value).Returns(queueMessages);
+            var response = Substitute.For<Response<QueueMessage[]>>();
+            response.Value.Returns(queueMessages);
 
-            var requestFailedException = new RequestFailedException(404, "");
-            queueClientFake.SetupSequence(c => c.ReceiveMessagesAsync(1, TimeSpan.FromSeconds(options.VisibilityTimeoutInSeconds), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(requestFailedException)
-                .ReturnsAsync(succeededResponseFake.Object);
+            queueClient.ReceiveMessagesAsync(1, TimeSpan.FromSeconds(options.VisibilityTimeoutInSeconds), Arg.Any<CancellationToken>())
+                .Returns(_ => throw new RequestFailedException(404, ""), _ => response);
+            queueClient.CreateAsync(Arg.Any<IDictionary<string, string>>(), Arg.Any<CancellationToken>())
+                .Returns(Substitute.For<Response>());
 
-            queueClientFake.Setup(c => c.CreateAsync(It.IsAny<IDictionary<string, string>>(), It.IsAny<CancellationToken>())).ReturnsAsync(new Mock<Response>().Object);
-            queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
-            queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(queueClientFake.Object);
+            queueClientProvider.GetQueue().Returns(queueClient);
+            queueClientProvider.GetPoisonQueue().Returns(queueClient);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
+            var sut = new QueueMessageManager(queueClientProvider, Options.Create(options));
 
             // Act
             var message = await sut.RetrieveMessageAsync(CancellationToken.None);
 
             // Assert
-            message!.MessageId.Should().Be(queueMessages[0].MessageId);
+            Assert.Equal(queueMessages[0].MessageId, message!.MessageId);
         }
 
         [Fact]
@@ -71,28 +70,21 @@ namespace Dequeueable.UnitTests.Services.Queues
         {
             // Arrange
             var options = new HostOptions();
-            var queueClientProviderMock = new Mock<IQueueClientProvider>(MockBehavior.Strict);
-            var queueClientFake = new Mock<QueueClient>(MockBehavior.Strict);
-            var queueMessages = new[] { QueuesModelFactory.QueueMessage("id", "pop", BinaryData.FromString("message"), 2) };
-            var succeededresponseFake = new Mock<Response<QueueMessage[]>>();
+            var queueClientProvider = Substitute.For<IQueueClientProvider>();
+            var queueClient = Substitute.For<QueueClient>();
 
-            succeededresponseFake.SetupGet(r => r.Value).Returns(queueMessages);
+            queueClient.ReceiveMessagesAsync(1, TimeSpan.FromSeconds(options.VisibilityTimeoutInSeconds), Arg.Any<CancellationToken>())
+                .ThrowsAsync(new RequestFailedException(404, ""));
+            queueClient.CreateAsync(Arg.Any<IDictionary<string, string>>(), Arg.Any<CancellationToken>())
+                .ThrowsAsync(new RequestFailedException(409, "some conflict"));
 
-            var requestFailedException = new RequestFailedException(404, "");
-            queueClientFake.Setup(c => c.ReceiveMessagesAsync(1, TimeSpan.FromSeconds(options.VisibilityTimeoutInSeconds), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(requestFailedException);
+            queueClientProvider.GetQueue().Returns(queueClient);
+            queueClientProvider.GetPoisonQueue().Returns(queueClient);
 
-            queueClientFake.Setup(c => c.CreateAsync(It.IsAny<IDictionary<string, string>>(), It.IsAny<CancellationToken>())).ThrowsAsync(new RequestFailedException(409, "some conflict"));
-            queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
-            queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(queueClientFake.Object);
+            var sut = new QueueMessageManager(queueClientProvider, Options.Create(options));
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
-
-            // Act
-            Func<Task> act = () => sut.RetrieveMessageAsync(CancellationToken.None);
-
-            // Assert
-            await act.Should().ThrowAsync<RequestFailedException>();
+            // Act & Assert
+            await Assert.ThrowsAsync<RequestFailedException>(() => sut.RetrieveMessageAsync(CancellationToken.None));
         }
 
         [Fact]
@@ -101,23 +93,25 @@ namespace Dequeueable.UnitTests.Services.Queues
             // Arrange
             var message = new MessageTestDataBuilder().Build();
             var options = new HostOptions();
-            var queueClientProviderMock = new Mock<IQueueClientProvider>(MockBehavior.Strict);
-            var queueClientFake = new Mock<QueueClient>(MockBehavior.Strict);
-            var responseFake = new Mock<Response<UpdateReceipt>>();
-            var updateReceiptFake = new Mock<UpdateReceipt>();
+            var queueClientProvider = Substitute.For<IQueueClientProvider>();
+            var queueClient = Substitute.For<QueueClient>();
 
-            responseFake.SetupGet(r => r.Value).Returns(updateReceiptFake.Object);
-            queueClientFake.Setup(c => c.UpdateMessageAsync(message.MessageId, message.PopReceipt, (string?)null, TimeSpan.FromSeconds(options.VisibilityTimeoutInSeconds), It.IsAny<CancellationToken>())).ReturnsAsync(responseFake.Object);
-            queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
-            queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(queueClientFake.Object);
+            var updateReceipt = QueuesModelFactory.UpdateReceipt("newPopReceipt", DateTimeOffset.UtcNow.AddMinutes(5));
+            var response = Substitute.For<Response<UpdateReceipt>>();
+            response.Value.Returns(updateReceipt);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
+            queueClient.UpdateMessageAsync(message.MessageId, message.PopReceipt, (string?)null, TimeSpan.FromSeconds(options.VisibilityTimeoutInSeconds), Arg.Any<CancellationToken>())
+                .Returns(response);
+            queueClientProvider.GetQueue().Returns(queueClient);
+            queueClientProvider.GetPoisonQueue().Returns(queueClient);
+
+            var sut = new QueueMessageManager(queueClientProvider, Options.Create(options));
 
             // Act
             var nextVisibleOn = await sut.UpdateVisibilityTimeOutAsync(message, CancellationToken.None);
 
             // Assert
-            nextVisibleOn.Should().Be(updateReceiptFake.Object.NextVisibleOn);
+            Assert.Equal(updateReceipt.NextVisibleOn, nextVisibleOn);
         }
 
         [Fact]
@@ -126,21 +120,21 @@ namespace Dequeueable.UnitTests.Services.Queues
             // Arrange
             var message = new MessageTestDataBuilder().Build();
             var options = new HostOptions();
-            var queueClientProviderMock = new Mock<IQueueClientProvider>(MockBehavior.Strict);
-            var queueClientFake = new Mock<QueueClient>(MockBehavior.Strict);
-            var responseFake = new Mock<Response>();
+            var queueClientProvider = Substitute.For<IQueueClientProvider>();
+            var queueClient = Substitute.For<QueueClient>();
 
-            queueClientFake.Setup(c => c.DeleteMessageAsync(message.MessageId, message.PopReceipt, It.IsAny<CancellationToken>())).ReturnsAsync(responseFake.Object).Verifiable();
-            queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
-            queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(queueClientFake.Object);
+            queueClient.DeleteMessageAsync(message.MessageId, message.PopReceipt, Arg.Any<CancellationToken>())
+                .Returns(Substitute.For<Response>());
+            queueClientProvider.GetQueue().Returns(queueClient);
+            queueClientProvider.GetPoisonQueue().Returns(queueClient);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
+            var sut = new QueueMessageManager(queueClientProvider, Options.Create(options));
 
             // Act
             await sut.DeleteMessageAsync(message, CancellationToken.None);
 
             // Assert
-            queueClientFake.Verify();
+            await queueClient.Received(1).DeleteMessageAsync(message.MessageId, message.PopReceipt, Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -149,21 +143,18 @@ namespace Dequeueable.UnitTests.Services.Queues
             // Arrange
             var message = new MessageTestDataBuilder().Build();
             var options = new HostOptions();
-            var queueClientProviderMock = new Mock<IQueueClientProvider>(MockBehavior.Strict);
-            var queueClientFake = new Mock<QueueClient>(MockBehavior.Strict);
-            var exception = new RequestFailedException(404, "test exception");
+            var queueClientProvider = Substitute.For<IQueueClientProvider>();
+            var queueClient = Substitute.For<QueueClient>();
 
-            queueClientFake.Setup(c => c.DeleteMessageAsync(message.MessageId, message.PopReceipt, It.IsAny<CancellationToken>())).ThrowsAsync(exception);
-            queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
-            queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(queueClientFake.Object);
+            queueClient.DeleteMessageAsync(message.MessageId, message.PopReceipt, Arg.Any<CancellationToken>())
+                .ThrowsAsync(new RequestFailedException(404, "test exception"));
+            queueClientProvider.GetQueue().Returns(queueClient);
+            queueClientProvider.GetPoisonQueue().Returns(queueClient);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
+            var sut = new QueueMessageManager(queueClientProvider, Options.Create(options));
 
-            // Act
-            Func<Task> act = () => sut.DeleteMessageAsync(message, CancellationToken.None);
-
-            // Assert
-            await act.Should().NotThrowAsync();
+            // Act & Assert
+            await sut.DeleteMessageAsync(message, CancellationToken.None); // should not throw
         }
 
         [Fact]
@@ -172,21 +163,18 @@ namespace Dequeueable.UnitTests.Services.Queues
             // Arrange
             var message = new MessageTestDataBuilder().Build();
             var options = new HostOptions();
-            var queueClientProviderMock = new Mock<IQueueClientProvider>(MockBehavior.Strict);
-            var queueClientFake = new Mock<QueueClient>(MockBehavior.Strict);
-            var exception = new RequestFailedException(409, "test exception");
+            var queueClientProvider = Substitute.For<IQueueClientProvider>();
+            var queueClient = Substitute.For<QueueClient>();
 
-            queueClientFake.Setup(c => c.DeleteMessageAsync(message.MessageId, message.PopReceipt, It.IsAny<CancellationToken>())).ThrowsAsync(exception);
-            queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
-            queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(queueClientFake.Object);
+            queueClient.DeleteMessageAsync(message.MessageId, message.PopReceipt, Arg.Any<CancellationToken>())
+                .ThrowsAsync(new RequestFailedException(409, "test exception"));
+            queueClientProvider.GetQueue().Returns(queueClient);
+            queueClientProvider.GetPoisonQueue().Returns(queueClient);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
+            var sut = new QueueMessageManager(queueClientProvider, Options.Create(options));
 
-            // Act
-            Func<Task> act = () => sut.DeleteMessageAsync(message, CancellationToken.None);
-
-            // Assert
-            await act.Should().ThrowAsync<RequestFailedException>();
+            // Act & Assert
+            await Assert.ThrowsAsync<RequestFailedException>(() => sut.DeleteMessageAsync(message, CancellationToken.None));
         }
 
         [Fact]
@@ -195,23 +183,21 @@ namespace Dequeueable.UnitTests.Services.Queues
             // Arrange
             var message = new MessageTestDataBuilder().Build();
             var options = new HostOptions();
-            var queueClientProviderMock = new Mock<IQueueClientProvider>(MockBehavior.Strict);
-            var queueClientFake = new Mock<QueueClient>(MockBehavior.Strict);
-            var responseFake = new Mock<Response<UpdateReceipt>>();
-            var updateReceiptFake = new Mock<UpdateReceipt>();
+            var queueClientProvider = Substitute.For<IQueueClientProvider>();
+            var queueClient = Substitute.For<QueueClient>();
 
-            responseFake.SetupGet(r => r.Value).Returns(updateReceiptFake.Object);
-            queueClientFake.Setup(c => c.UpdateMessageAsync(message.MessageId, message.PopReceipt, message.Body, TimeSpan.Zero, It.IsAny<CancellationToken>())).ReturnsAsync(responseFake.Object).Verifiable();
-            queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
-            queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(queueClientFake.Object);
+            queueClient.UpdateMessageAsync(message.MessageId, message.PopReceipt, message.Body, TimeSpan.Zero, Arg.Any<CancellationToken>())
+                .Returns(Substitute.For<Response<UpdateReceipt>>());
+            queueClientProvider.GetQueue().Returns(queueClient);
+            queueClientProvider.GetPoisonQueue().Returns(queueClient);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
+            var sut = new QueueMessageManager(queueClientProvider, Options.Create(options));
 
             // Act
             await sut.EnqueueMessageAsync(message, CancellationToken.None);
 
             // Assert
-            queueClientFake.Verify();
+            await queueClient.Received(1).UpdateMessageAsync(message.MessageId, message.PopReceipt, message.Body, TimeSpan.Zero, Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -220,24 +206,26 @@ namespace Dequeueable.UnitTests.Services.Queues
             // Arrange
             var message = new MessageTestDataBuilder().Build();
             var options = new HostOptions();
-            var queueClientProviderMock = new Mock<IQueueClientProvider>(MockBehavior.Strict);
-            var queueClientFake = new Mock<QueueClient>(MockBehavior.Strict);
-            var poisonqueueClientFake = new Mock<QueueClient>(MockBehavior.Strict);
+            var queueClientProvider = Substitute.For<IQueueClientProvider>();
+            var queueClient = Substitute.For<QueueClient>();
+            var poisonQueueClient = Substitute.For<QueueClient>();
 
-            poisonqueueClientFake.Setup(c => c.SendMessageAsync(message.Body, null, null, It.IsAny<CancellationToken>())).ReturnsAsync(new Mock<Response<SendReceipt>>().Object).Verifiable();
-            queueClientFake.Setup(c => c.DeleteMessageAsync(message.MessageId, message.PopReceipt, It.IsAny<CancellationToken>())).ReturnsAsync(new Mock<Response>().Object).Verifiable();
+            poisonQueueClient.SendMessageAsync(message.Body, null, null, Arg.Any<CancellationToken>())
+                .Returns(Substitute.For<Response<SendReceipt>>());
+            queueClient.DeleteMessageAsync(message.MessageId, message.PopReceipt, Arg.Any<CancellationToken>())
+                .Returns(Substitute.For<Response>());
 
-            queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
-            queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(poisonqueueClientFake.Object);
+            queueClientProvider.GetQueue().Returns(queueClient);
+            queueClientProvider.GetPoisonQueue().Returns(poisonQueueClient);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
+            var sut = new QueueMessageManager(queueClientProvider, Options.Create(options));
 
             // Act
             await sut.MoveToPoisonQueueAsync(message, CancellationToken.None);
 
             // Assert
-            queueClientFake.Verify();
-            poisonqueueClientFake.Verify();
+            await poisonQueueClient.Received(1).SendMessageAsync(message.Body, null, null, Arg.Any<CancellationToken>());
+            await queueClient.Received(1).DeleteMessageAsync(message.MessageId, message.PopReceipt, Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -246,27 +234,28 @@ namespace Dequeueable.UnitTests.Services.Queues
             // Arrange
             var message = new MessageTestDataBuilder().Build();
             var options = new HostOptions();
-            var queueClientProviderMock = new Mock<IQueueClientProvider>(MockBehavior.Strict);
-            var queueClientFake = new Mock<QueueClient>(MockBehavior.Strict);
-            var poisonqueueClientFake = new Mock<QueueClient>(MockBehavior.Strict);
+            var queueClientProvider = Substitute.For<IQueueClientProvider>();
+            var queueClient = Substitute.For<QueueClient>();
+            var poisonQueueClient = Substitute.For<QueueClient>();
 
-            poisonqueueClientFake.SetupSequence(c => c.SendMessageAsync(message.Body, null, null, It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new RequestFailedException(404, "queue not found)"))
-                .ReturnsAsync(new Mock<Response<SendReceipt>>().Object);
-            queueClientFake.Setup(c => c.DeleteMessageAsync(message.MessageId, message.PopReceipt, It.IsAny<CancellationToken>())).ReturnsAsync(new Mock<Response>().Object).Verifiable();
-            poisonqueueClientFake.Setup(c => c.CreateAsync(It.IsAny<IDictionary<string, string>>(), It.IsAny<CancellationToken>())).ReturnsAsync(new Mock<Response>().Object);
+            poisonQueueClient.SendMessageAsync(message.Body, null, null, Arg.Any<CancellationToken>())
+                .Returns(_ => throw new RequestFailedException(404, "queue not found"), _ => Substitute.For<Response<SendReceipt>>());
+            queueClient.DeleteMessageAsync(message.MessageId, message.PopReceipt, Arg.Any<CancellationToken>())
+                .Returns(Substitute.For<Response>());
+            poisonQueueClient.CreateAsync(Arg.Any<IDictionary<string, string>>(), Arg.Any<CancellationToken>())
+                .Returns(Substitute.For<Response>());
 
-            queueClientProviderMock.Setup(c => c.GetQueue()).Returns(queueClientFake.Object);
-            queueClientProviderMock.Setup(c => c.GetPoisonQueue()).Returns(poisonqueueClientFake.Object);
+            queueClientProvider.GetQueue().Returns(queueClient);
+            queueClientProvider.GetPoisonQueue().Returns(poisonQueueClient);
 
-            var sut = new QueueMessageManager(queueClientProviderMock.Object, Options.Create(options));
+            var sut = new QueueMessageManager(queueClientProvider, Options.Create(options));
 
             // Act
             await sut.MoveToPoisonQueueAsync(message, CancellationToken.None);
 
             // Assert
-            queueClientFake.Verify();
-            poisonqueueClientFake.Verify();
+            await poisonQueueClient.Received(2).SendMessageAsync(message.Body, null, null, Arg.Any<CancellationToken>());
+            await queueClient.Received(1).DeleteMessageAsync(message.MessageId, message.PopReceipt, Arg.Any<CancellationToken>());
         }
     }
 }

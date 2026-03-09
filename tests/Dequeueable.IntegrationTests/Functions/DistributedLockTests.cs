@@ -1,69 +1,53 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
+using Dequeueable.Configurations;
 using Dequeueable.IntegrationTests.Fixtures;
 using Dequeueable.IntegrationTests.TestDataBuilders;
-using Dequeueable.Models;
-using FluentAssertions;
+using Dequeueable.Services.DistributedLock;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 
 namespace Dequeueable.IntegrationTests.Functions
 {
-    public class SingletonTests : IClassFixture<AzuriteFixture>, IAsyncLifetime
+    public class DistributedLockTests : IClassFixture<AzuriteFixture>, IAsyncLifetime
     {
         private readonly QueueClientOptions _queueClientOptions = new() { MessageEncoding = QueueMessageEncoding.Base64 };
         private readonly AzuriteFixture _azuriteFixture;
         private readonly string _queueName;
         private readonly QueueClient _queueClient;
+        private readonly string _containerName = "joblock";
+        private readonly string _scope = "Id";
 
-        public SingletonTests(AzuriteFixture azuriteFixture)
+        public DistributedLockTests(AzuriteFixture azuriteFixture)
         {
             _azuriteFixture = azuriteFixture;
             _queueName = "singletonqueue";
             _queueClient = new QueueClient(_azuriteFixture.ConnectionString, _queueName, _queueClientOptions);
         }
 
-        public Task InitializeAsync()
-        {
-            return _queueClient.CreateAsync();
-        }
-
-        public Task DisposeAsync()
-        {
-            return _queueClient.DeleteAsync();
-        }
+        public Task InitializeAsync() => _queueClient.CreateAsync();
+        public Task DisposeAsync() => _queueClient.DeleteAsync();
 
         [Fact]
-        public async Task Given_two_JobInstances_run_as_distributed_lock_when_a_queue_has_two_messages_then_only_one_is_handled_correctly()
+        public async Task Given_two_JobInstances_run_as_distributed_lock_when_a_queue_has_two_messages_then_both_are_handled_correctly()
         {
             // Arrange
-            var scope = "Id";
-            var containerName = "joblock";
-            var factory = new JobHostFactory<TestFunction>(opt =>
+            var fakeService = new FakeService();
+            var factory = new JobHostFactory<TestJob>(opt =>
             {
                 opt.ConnectionString = _azuriteFixture.ConnectionString;
                 opt.QueueName = _queueName;
-                opt.MaxDequeueCount = 5;
+
             }, opt =>
             {
-                opt.ContainerName = containerName;
-                opt.Scope = scope;
+                opt.ContainerName = _containerName;
+                opt.Scope = _scope;
             });
 
-            var fakeServiceMock = new Mock<IFakeService>();
-
-            factory.ConfigureTestServices(services =>
-            {
-                services.AddTransient(_ => fakeServiceMock.Object);
-            });
-
-            var blobContainerClient = new BlobContainerClient(_azuriteFixture.ConnectionString, containerName);
+            factory.ConfigureTestServices(services => services.AddTransient<IFakeService>(_ => fakeService));
 
             var messages = new[] { new { Id = "1" }, new { Id = "1" } };
             foreach (var message in messages)
-            {
                 await _queueClient.SendMessageAsync(BinaryData.FromObjectAsJson(message));
-            }
 
             // Act
             var host = factory.Build();
@@ -73,12 +57,13 @@ namespace Dequeueable.IntegrationTests.Functions
                 host.ExecuteAsync(CancellationToken.None));
 
             // Assert
-            fakeServiceMock.Verify(f => f.Execute(It.IsAny<Message>()), Times.Exactly(messages.Length));
-            var peekedMessage = await _queueClient.PeekMessageAsync();
-            peekedMessage.Value.Should().BeNull();
+            Assert.Equal(messages.Length, fakeService.ExecutedMessages.Count);
 
-            var blobclient = blobContainerClient.GetBlobClient("1");
-            (await blobclient.ExistsAsync()).Value.Should().BeTrue();
+            var peekedMessage = await _queueClient.PeekMessageAsync();
+            Assert.Null(peekedMessage.Value);
+
+            var blobClient = new BlobContainerClient(_azuriteFixture.ConnectionString, _containerName).GetBlobClient("1");
+            Assert.True((await blobClient.ExistsAsync()).Value);
         }
     }
 }

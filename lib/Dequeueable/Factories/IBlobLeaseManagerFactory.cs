@@ -1,12 +1,10 @@
-﻿using Azure.Storage.Blobs;
-using Dequeueable.Configurations;
-using Dequeueable.Services.DistributedLock;
-using Microsoft.Extensions.Logging;
+﻿using Dequeueable.Services.DistributedLock;
+
 
 namespace Dequeueable.Factories
 {
     internal interface IBlobLeaseManagerFactory
     {
-        IBlobLeaseManager Create(BlobClient blobClient, DistributedLockOptions options, ILogger logger);
+        IBlobLeaseManager Create(string fileName);
     }
 }

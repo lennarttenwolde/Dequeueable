@@ -7,14 +7,13 @@ using Microsoft.Extensions.Options;
 namespace Dequeueable.Services.DistributedLock
 {
     internal sealed class DistributedLockManager(ILogger<DistributedLockManager> logger,
-    IBlobClientProvider blobClientProvider,
     IBlobLeaseManagerFactory blobLeaseManagerFactory,
     IOptions<DistributedLockOptions> distributedLockOptions) : IDistributedLockManager
     {
         public async Task<string> AquireLockAsync(string fileName, CancellationToken cancellationToken)
         {
-            var blobClient = blobClientProvider.GetClient(fileName);
-            var lockManager = blobLeaseManagerFactory.Create(blobClient, distributedLockOptions.Value, logger);
+
+            var lockManager = blobLeaseManagerFactory.Create(fileName);
 
             var leaseId = await AcquireLockAsync(distributedLockOptions.Value, lockManager, cancellationToken);
 
@@ -25,8 +24,7 @@ namespace Dequeueable.Services.DistributedLock
 
         public async Task<DateTimeOffset> RenewLockAsync(string leaseId, string fileName, CancellationToken cancellationToken)
         {
-            var blobClient = blobClientProvider.GetClient(fileName);
-            var lockManager = blobLeaseManagerFactory.Create(blobClient, distributedLockOptions.Value, logger);
+            var lockManager = blobLeaseManagerFactory.Create(fileName);
 
             var nextVisibileOn = await lockManager.RenewAsync(leaseId, cancellationToken);
 
@@ -36,8 +34,7 @@ namespace Dequeueable.Services.DistributedLock
 
         public Task ReleaseLockAsync(string leaseId, string fileName, CancellationToken cancellationToken)
         {
-            var blobClient = blobClientProvider.GetClient(fileName);
-            var lockManager = blobLeaseManagerFactory.Create(blobClient, distributedLockOptions.Value, logger);
+            var lockManager = blobLeaseManagerFactory.Create(fileName);
 
             return lockManager.ReleaseAsync(leaseId, cancellationToken);
         }

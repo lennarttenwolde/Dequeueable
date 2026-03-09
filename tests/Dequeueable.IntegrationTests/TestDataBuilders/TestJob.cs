@@ -3,12 +3,12 @@
 namespace Dequeueable.IntegrationTests.TestDataBuilders
 {
 #pragma warning disable CA1515 // Consider making public types internal
-    public class TestFunction : IQueueJob
+    public class TestJob : IQueueJob
 #pragma warning restore CA1515 // Consider making public types internal
     {
         private readonly IFakeService _fakeService;
 
-        public TestFunction(IFakeService fakeService)
+        public TestJob(IFakeService fakeService)
         {
             _fakeService = fakeService;
         }
@@ -25,12 +25,19 @@ namespace Dequeueable.IntegrationTests.TestDataBuilders
     {
         Task Execute(Message message);
     }
-
-#pragma warning disable CA1515 // Consider making public types internal
-    public class FakeService : IFakeService
-#pragma warning restore CA1515 // Consider making public types internal
+    internal sealed class FakeService(bool shouldThrow = false, TimeSpan? delay = null) : IFakeService
     {
+        public List<Message> ExecutedMessages { get; } = [];
 
-        public Task Execute(Message message) { return Task.CompletedTask; }
+        public async Task Execute(Message message)
+        {
+            if (shouldThrow)
+                throw new Exception("Test exception");
+
+            if (delay.HasValue)
+                await Task.Delay(delay.Value);
+
+            ExecutedMessages.Add(message);
+        }
     }
 }
