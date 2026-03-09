@@ -2,8 +2,6 @@
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
-    <TargetFramework>net10.0</TargetFramework>
-    <TargetFrameworks></TargetFrameworks>
     <NoWarn>
       CA1707; <!-- Identifiers should not contain underscores -->
       CA2007; <!-- Do not directly await a Task -->

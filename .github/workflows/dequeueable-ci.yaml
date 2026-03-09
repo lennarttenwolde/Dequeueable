@@ -13,21 +13,19 @@ jobs:
     timeout-minutes: 15
     strategy:
       matrix:
-        - dotnet-version: '8.x.x'
-          tfm: 'net8.0'
-        - dotnet-version: '9.x.x'
-          tfm: 'net9.0'
-        - dotnet-version: '10.x.x'
-          tfm: 'net10.0'
+        configs:
+          - { sdk: '8.x.x', tfm: 'net8.0' }
+          - { sdk: '9.x.x', tfm: 'net9.0' }
+          - { sdk: '10.x.x', tfm: 'net10.0' }
     steps:
       - uses: actions/checkout@v4
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: ${{ matrix.dotnet-version }}
+          dotnet-version: ${{ matrix.configs.sdk }}
       - name: Install dependencies
         run: dotnet restore
       - name: Build
         run: dotnet build --configuration Release --no-restore
       - name: Test
-        run: dotnet test --no-restore --verbosity minimal --framework net${{ matrix.tfm }}
+        run: dotnet test --no-restore --verbosity minimal --framework ${{ matrix.configs.tfm }}
