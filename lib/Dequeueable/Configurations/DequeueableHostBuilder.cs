@@ -24,7 +24,6 @@ namespace Dequeueable.Configurations
             services.AddTransient<IDistributedLockManager, DistributedLockManager>();
 
             services.AddTransient<IBlobClientProvider, BlobClientProvider>();
-            services.AddTransient<IBlobLeaseManager, BlobLeaseManager>();
             services.AddTransient<IBlobLeaseManagerFactory, BlobLeaseManagerFactory>();
             services.AddTransient<IBlobClientFactory, BlobClientFactory>();
             services.AddTransient<QueueMessageExecutor>();
