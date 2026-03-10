@@ -1,5 +1,14 @@
+# .NET
 **/.vs/
 **/bin/
-**obj/
-**appsettings.Development.json
-**.nupkg
+**/obj/
+**/appsettings.Development.json
+**/*.nupkg
+
+# Editor
+**/.vscode/
+
+# Node / VitePress
+**/node_modules/
+docs/.vitepress/cache
+docs/.vitepress/dist
