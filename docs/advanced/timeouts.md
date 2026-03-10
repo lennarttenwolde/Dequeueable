@@ -33,7 +33,7 @@ Choose this value wisely. A very low timeout causes frequent renewal calls. A ve
 
 ## Lease Timeout
 
-When using the [Distributed Lock](./distributed-lock), the blob lease is automatically renewed when half of the `LeaseDurationInSeconds` has elapsed.
+When using the [Distributed Lock](../guide/distributed-lock.md), the blob lease is automatically renewed when half of the `LeaseDurationInSeconds` has elapsed.
 
 ::: warning
 When the lease renewal fails, the host can no longer guarantee the distributed lock. The `CancellationToken` will be set to cancelled — it is up to you to handle this scenario in your job implementation.
