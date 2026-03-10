@@ -10,15 +10,17 @@ This approach gives you fine-grained control over scaling: instead of one long-r
 
 Azure Functions is a great general-purpose serverless platform, but it comes with trade-offs:
 
-Azure Functions is a great general-purpose serverless platform, but it comes with trade-offs:
-
-- **Runtime lock-in** — you are tied to the Azure Functions host, its versioning, and its limitations.
-- **Cold starts** — Functions can have cold start latency, especially on the Consumption plan.
-- **Limited container control** — customizing the underlying container (e.g., using optimized alpine images) is not straightforward.
-- **Scaling model** — the Functions host manages scaling internally, which can be harder to tune for specific workloads.
-- **Resource contention** — when multiple messages are processed concurrently within a single host, they compete for the same CPU and memory. With Dequeueable, each instance processes one message and gets its own dedicated resources, making resource limits predictable and enforceable at the infra level.
-- **Observability** — with multiple messages running in one host process, correlating logs and traces to a specific message can be difficult. Each Dequeueable instance maps to exactly one message, making distributed tracing straightforward.
-- **Startup configuration** — the Functions host imposes opinions on logging, configuration, and middleware that can be hard to override. Dequeueable is a plain `IHostBuilder` — you configure it exactly like any other .NET application.
+| | Azure Functions | Dequeueable |
+| --- | --- | --- |
+| **Runtime** | Tied to the Functions host | Plain .NET `IHostBuilder` |
+| **Container control** | Limited | Full control, any base image |
+| **Resource limits** | Shared across concurrent executions | Per-message, enforceable at container level |
+| **Scaling model** | Managed internally by the host | Externally driven by KEDA or any scaler |
+| **Cold starts** | Yes, especially on Consumption plan | Minimal with optimized alpine images |
+| **Concurrency** | Multiple messages in one process | One message per container instance |
+| **Log correlation** | Harder across concurrent executions | Each container = one message |
+| **Configuration** | Opinionated host with limited overrides | Fully configurable like any .NET app |
+| **Messages per execution** | Many | One |
 
 Dequeueable gives you a plain console app that you fully own. You can use any base image, configure your container exactly as needed, and let KEDA or any other scaler drive execution.
 
@@ -50,7 +52,7 @@ If your job throws an unhandled exception, the message becomes visible again on 
 
 ## What is the poison queue?
 
-The poison queue is a separate queue where messages are moved after exceeding the `MaxDequeueCount`. The queue name is derived from the original queue name with the `PoisonQueueSuffix` appended, e.g. `my-queue-poison`. You are responsible for monitoring and handling messages in the poison queue.
+The poison queue is a separate queue where messages are moved after exceeding the `MaxDequeueCount`. The queue name is derived from the original queue name with the `PoisonQueueSuffix` appended, e.g. `my-queue-poison`. You are responsible for monitoring and handling messages in the poison queue. See [Poison Queue](./advanced/poison-queue.md) for more details.
 
 ## Is the message guaranteed to be processed exactly once?
 
@@ -62,7 +64,7 @@ Yes. KEDA is the recommended scaler but not a requirement. You can trigger the j
 
 ## Can I use this with Azure Managed Identity?
 
-Yes, and it is the recommended approach for production. See the [Authentication](./authentication) guide for setup instructions.
+Yes, and it is the recommended approach for production. See the [Authentication](./guide/authentication.md) guide for setup instructions.
 
 ## Does this work with .NET 8 and .NET 9?
 

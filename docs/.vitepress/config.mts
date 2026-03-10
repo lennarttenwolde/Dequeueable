@@ -6,7 +6,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Guide', link: '/guide/getting-started' },
+      { text: 'Docs', link: '/guide/getting-started' },
     ],
 
     sidebar: [
@@ -16,8 +16,22 @@ export default defineConfig({
           { text: 'Getting Started', link: '/guide/getting-started' },
           { text: 'Authentication', link: '/guide/authentication' },
           { text: 'Distributed Lock', link: '/guide/distributed-lock' },
-          { text: 'Timeouts', link: '/guide/timeouts' },
-          { text: 'FAQ', link: '/guide/faq' },
+        ]
+      },
+      {
+        text: 'Advanced',
+        items: [
+          { text: 'Timeouts', link: '/advanced/timeouts' },
+          { text: 'Poison Queue', link: '/advanced/poison-queue' },
+          { text: 'Custom Providers', link: '/advanced/custom-providers' },
+          { text: 'KEDA Integration', link: '/advanced/keda' },
+          { text: 'Docker', link: '/advanced/docker' },
+        ]
+      },
+      {
+        text: 'Other',
+        items: [
+          { text: 'FAQ', link: '/faq' },
         ]
       }
     ],

@@ -77,25 +77,5 @@ opt.Scope = "My:Nested:Property";
 | ContainerName | The blob container name for lock files. | webjobshost | No |
 | BlobUriFormat | The URI format for blob storage. Used for identity flow. | https://{accountName}.blob.core.windows.net/{containerName}/{blobName} | No |
 
-## Custom Blob Provider
-
-If you need to customize how the `BlobClient` is constructed, implement `IBlobClientProvider`:
-```csharp
-internal class MyCustomBlobClientProvider : IBlobClientProvider
-{
-    public BlobClient GetClient(string blobName)
-    {
-        return new BlobClient(
-            new Uri($"https://myaccount.chinacloudapi.cn/mycontainer/{blobName}"),
-            new BlobClientOptions
-            {
-                GeoRedundantSecondaryUri = new Uri($"https://mysecaccount.chinacloudapi.cn/mycontainer/{blobName}")
-            });
-    }
-}
-```
-
-Register it in your DI container:
-```csharp
-services.AddSingleton<IBlobClientProvider, MyCustomBlobClientProvider>();
-```
+## Advanced
+If you need to customize how the `BlobClient` is constructed, implement `IBlobClientProvider`, see [Custom Provides](../advanced/custom-providers.md) for details

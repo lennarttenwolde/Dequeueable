@@ -1,24 +1,29 @@
 ---
-# https://vitepress.dev/reference/default-theme-home-page
 layout: home
 
 hero:
   name: "Dequeueable"
   text: "Cloud-native ephemeral job runner for Azure Queue Storage"
-  tagline: Triggered by KEDA, processes a single message, and shuts down.
+  tagline: One message. One container. Done.
   actions:
     - theme: brand
-      text: Get Started
+      text: Get Started →
       link: /guide/getting-started
     - theme: alt
       text: View on GitHub
       link: https://github.com/lenndewolten/Dequeueable
 
 features:
-  - title: Ephemeral by Design
-    details: Each instance processes a single message and shuts down immediately. Scale with KEDA or any external queue scaler.
-  - title: Simple API
-    details: Just implement IQueueJob, register it with AddDequeueable, and call RunJobAsync. No boilerplate.
-  - title: Distributed Lock
-    details: Built-in distributed locking via Azure Blob leases ensures only one instance processes the same message at a time.
+  - icon: ⚡
+    title: Ephemeral by Design
+    details: Each instance starts, processes a single message, and shuts down. No idle compute, no wasted resources. Let KEDA or any external scaler drive execution.
+  - icon: 🧩
+    title: Zero Boilerplate
+    details: Implement IQueueJob, register with AddDequeueable, call RunJobAsync. Visibility timeouts, poison queues, and error handling are all taken care of.
+  - icon: 🔒
+    title: Distributed Lock
+    details: Built-in distributed locking via Azure Blob leases ensures only one instance processes the same scoped message at any given time.
+  - icon: 🐳
+    title: Container First
+    details: Built for optimized alpine images. Predictable resource limits per message. Works seamlessly with Kubernetes, KEDA, and Azure Container Apps.
 ---

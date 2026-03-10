@@ -51,29 +51,6 @@ https://{accountName}.queue.core.windows.net/{queueName}
 
 Use `{accountName}` and `{queueName}` as placeholders for variable substitution.
 
-## Custom Queue Provider
+## Advanced
 
-If neither option fits your setup, you can override the default queue client by implementing `IQueueClientProvider`:
-```csharp
-internal class MyCustomQueueProvider : IQueueClientProvider
-{
-    public QueueClient GetQueue()
-    {
-        return new QueueClient(
-            new Uri("https://myaccount.chinacloudapi.cn/myqueue"),
-            new QueueClientOptions { MessageEncoding = QueueMessageEncoding.Base64 });
-    }
-
-    public QueueClient GetPoisonQueue()
-    {
-        return new QueueClient(
-            new Uri("https://myaccount.chinacloudapi.cn/mypoisonqueue"),
-            new QueueClientOptions { MessageEncoding = QueueMessageEncoding.Base64 });
-    }
-}
-```
-
-Register it in your DI container — no specific registration order is required:
-```csharp
-services.AddSingleton<IQueueClientProvider, MyCustomQueueProvider>();
-```
+If neither option fits your setup, you can override the default queue client by implementing `IQueueClientProvider`, see [Custom Provides](../advanced/custom-providers.md) for details
