@@ -12,8 +12,8 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<RepositoryUrl>https://github.com/lenndewolten/Dequeueable</RepositoryUrl>
 		<RepositoryType>Git</RepositoryType>
-		<ProjectUrl>https://github.com/lenndewolten/Dequeueable</ProjectUrl>
-		<PackageProjectUrl>https://github.com/lenndewolten/Dequeueable</PackageProjectUrl>
+		<ProjectUrl>https://dequeueable.tenwolde.dev</ProjectUrl>
+		<PackageProjectUrl>https://www.nuget.org/packages/Dequeueable/</PackageProjectUrl>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 	<ItemGroup>
